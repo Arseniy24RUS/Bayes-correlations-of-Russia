@@ -3,83 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Цифровая демографическая обсерватория: корреляционный анализ социально-экономических факторов изменения численности населения  субъектов РФ</title>
+  <title>Цифровая демографическая обсерватория: корреляционный анализ субъектов РФ</title>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.26.0/plotly.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #52606d;
+      --border: #d9e2ec;
+      --accent: #2563eb;
+      --accent-2: #22c55e;
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: "Inter", "Segoe UI", system-ui, sans-serif;
       margin: 0;
       padding: 0;
-      line-height: 1.5;
-      background: #f6f7fb;
-      color: #1f2933;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
     }
     header {
-      padding: 1.5rem 1.5rem 0.5rem;
+      padding: 1.75rem 1.5rem 1rem;
       background: linear-gradient(135deg, #f7fafc, #eef2f7);
-      border-bottom: 1px solid #d9e2ec;
+      border-bottom: 1px solid var(--border);
     }
     h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.8rem;
+      margin: 0 0 0.35rem 0;
+      font-size: 1.9rem;
     }
     p.lead {
-      margin: 0;
-      color: #52606d;
-      max-width: 900px;
+      margin: 0 0 0.6rem;
+      color: var(--muted);
+      max-width: 1100px;
+    }
+    p.grant {
+      margin: 0.2rem 0 0;
+      color: #0f172a;
+      font-weight: 600;
+      max-width: 1100px;
     }
     main {
       padding: 1.5rem;
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
     }
     .panel {
-      background: #ffffff;
-      border: 1px solid #d9e2ec;
-      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 1rem 1.25rem;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       margin-bottom: 1rem;
     }
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.85rem;
       align-items: flex-end;
     }
     label {
-      font-weight: 600;
+      font-weight: 700;
       display: block;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.3rem;
     }
-    input, select, button {
+    select, input, button {
       width: 100%;
-      padding: 0.6rem 0.75rem;
+      padding: 0.65rem 0.75rem;
       border-radius: 10px;
       border: 1px solid #cbd2d9;
-      background: #ffffff;
+      background: #fff;
       color: inherit;
-      font-size: 0.95rem;
+      font-size: 0.98rem;
     }
     button.primary {
-      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
       border: none;
       color: #fff;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: 0.01em;
       transition: transform 0.1s ease, box-shadow 0.2s ease;
-      box-shadow: 0 10px 30px rgba(59,130,246,0.25);
+      box-shadow: 0 12px 34px rgba(37, 99, 235, 0.25);
     }
     button.primary:hover { transform: translateY(-1px); }
     .status {
-      margin-top: 0.5rem;
-      color: #52606d;
+      margin-top: 0.45rem;
+      color: var(--muted);
       font-size: 0.95rem;
     }
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 1rem;
     }
     #top-table table {
@@ -88,10 +105,11 @@
       font-size: 0.95rem;
     }
     #top-table th, #top-table td {
-      padding: 0.5rem;
+      padding: 0.55rem;
       border-bottom: 1px solid #e4e7eb;
+      vertical-align: top;
     }
-    #top-table th { text-align: left; color: #52606d; }
+    #top-table th { text-align: left; color: var(--muted); }
     .pill {
       padding: 0.15rem 0.55rem;
       border-radius: 999px;
@@ -107,50 +125,36 @@
       grid-template-columns: 1fr;
       gap: 1rem;
     }
-    @media (min-width: 1100px) {
-      .plots { grid-template-columns: 1fr 1fr; }
-    }
+    @media (min-width: 1080px) { .plots { grid-template-columns: 1fr 1fr; } }
     .footer {
       margin-top: 1rem;
-      color: #52606d;
-      font-size: 0.9rem;
+      color: var(--muted);
+      font-size: 0.95rem;
     }
-    .badge {
-      display: inline-flex;
-      gap: 0.25rem;
-      align-items: center;
-      background: #e5f0ff;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      border: 1px solid #b8d1ff;
-      font-size: 0.9rem;
-    }
+    .methodology h3 { margin-top: 0; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Цифровая демографическая обсерватория: корреляционный анализ социально-экономических факторов изменения численности населения  субъектов РФ</h1>
-    <p class="lead">Готовый дашборд загружает встроенную базу данных и автоматически строит корреляции между социально-экономическими показателями регионов. Фильтруйте по региону, году и порогу |r|, чтобы исследовать связи.</p>
+    <h1>Цифровая демографическая обсерватория: корреляционный анализ субъектов РФ</h1>
+    <p class="lead">Дашборд визуализирует готовые байесовские корреляции социально-экономических показателей по каждому региону России на основе файла <strong>corr_all_regions_all.xlsx</strong>.</p>
+    <p class="grant">Исследование выполнено за счёт средств гранта Российского научного фонда № 25-78-30004 «Цифровая демографическая обсерватория: разработка системы мониторинга демографических процессов в регионах России с использованием ГИС-технологий и больших данных», <a href="https://rscf.ru/project/25-78-30004/" target="_blank" rel="noopener">https://rscf.ru/project/25-78-30004/</a>.</p>
   </header>
   <main>
     <section class="panel">
       <div class="controls">
         <div>
-          <label for="region">Регион (regex, пусто = все)</label>
-          <input id="region" placeholder="Например: ^Новосибир" />
+          <label for="region">Субъект РФ</label>
+          <select id="region" aria-label="Выбор субъекта РФ"></select>
         </div>
         <div>
-          <label for="year">Год (число или all)</label>
-          <input id="year" placeholder="all" />
-        </div>
-        <div>
-          <label for="threshold">Порог |r| для отображения</label>
+          <label for="threshold">Порог |r|</label>
           <input id="threshold" type="range" min="0" max="0.9" step="0.05" value="0.5" />
           <div class="status">Текущий порог: <span id="threshold-value">0.50</span></div>
         </div>
         <div>
-          <button class="primary" id="run-btn" type="button">Посчитать корреляции</button>
-          <div class="status" id="status">Загрузка окружения...</div>
+          <button class="primary" id="run-btn" type="button">Обновить визуализацию</button>
+          <div class="status" id="status">Инициализация окружения...</div>
         </div>
       </div>
     </section>
@@ -161,7 +165,7 @@
         <div id="top-table"></div>
       </div>
       <div>
-        <h3>Сводка</h3>
+        <h3>Сводка по региону</h3>
         <ul id="summary"></ul>
       </div>
     </section>
@@ -177,22 +181,91 @@
       </div>
     </section>
 
+    <section class="panel methodology">
+      <h3>Методика расчёта</h3>
+      <p>Корреляции рассчитаны по байесовской корректировке коэффициента Пирсона, описанной в <code>corr.py</code>. Для каждой пары показателей из исходной базы берутся ряды значений по региону, удаляются пропуски, затем вычисляется стандартный коэффициент Пирсона <em>r</em>. Байесовская поправка снижает смещение при малых выборках: <em>r<sub>bayes</sub> = r · (1 − (1 − r²)/(n − 2))</em>, где <em>n</em> — число наблюдений пары.</p>
+      <p>Для подготовки корреляционных матриц удалены строковые столбцы, оставлены только числовые показатели, исключены константные признаки и столбцы с долей пропусков &gt; 70%. Далее формируется квадратная матрица корреляций, где диагональ <em>r = 1</em> не используется при визуализации. Все значения |r| ≥ выбранного порога отображаются в таблице и на графиках.</p>
+      <p>Библиотеки и окружение: расчёты выполнялись в Python с использованием <strong>pandas</strong>, <strong>numpy</strong> и <strong>openpyxl</strong>; на странице применяется <strong>Pyodide</strong> для чтения Excel и <strong>Plotly</strong> для визуализаций. Готовый файл <strong>corr_all_regions_all.xlsx</strong> содержит отдельный лист для каждого субъекта РФ с сохранённой матрицей корреляций.</p>
+    </section>
+
     <div class="footer panel">
-      <strong>Как это работает?</strong>
-      <ol>
-        <li>Pyodide (Python в браузере) подгружает pandas, numpy и openpyxl.</li>
-        <li>Встроенный Excel-файл считывается прямо в памяти и фильтруется по региону и году как в <code>corr.py</code>.</li>
-        <li>Вычисляется корреляционная матрица, формируется топ взаимосвязей и 3D точки.</li>
-        <li>Все расчёты выполняются локально в браузере, так что дашборд безопасен для GitHub Pages.</li>
-      </ol>
-      <p>База уже встроена в репозиторий (файл <strong>Итоговая_база_данных_типизация_и_исправления_финальные.xlsx</strong>), поэтому дашборд готов к работе сразу после открытия.</p>
+      Ситковский Арсений Михайлович, Рославцев Станислав Васильевич, 2025
     </div>
   </main>
 
 <script>
   let pyodideReady = null;
   let datasetBytes = null;
-  const pythonBootstrap = `import io, re, json, warnings\nimport pandas as pd\nimport numpy as np\nwarnings.simplefilter('ignore')\n\n` + `\n` + `def _clean_dataframe(df, region_pattern='.*', year_filter='all'):\n    if "Тип" in df.columns:\n        df = df.loc[~df["Тип"].eq("Страна")]\n        df = df.drop(columns=["Тип"])\n\n    if region_pattern != ".*":\n        mask = df["Регион"].str.contains(region_pattern, flags=re.I, regex=True, na=False)\n        df = df[mask]\n\n    if year_filter != "all":\n        df = df[df["Год"] == int(year_filter)]\n\n    df = df.drop_duplicates(subset=["Регион", "Год"], keep='first').reset_index(drop=True)\n    if len(df) < 2:\n        raise ValueError(f"Недостаточно данных: найдено {len(df)} строк. Попробуйте изменить фильтры.")\n\n    thresh = int(len(df) * 0.30)\n    df = df.dropna(axis=1, thresh=thresh)\n\n    num_cols = [c for c in df.select_dtypes(include=[np.number]).columns if c not in ["Регион", "Год"]]\n    num_cols = [c for c in num_cols if df[c].nunique() > 1]\n\n    if len(num_cols) < 2:\n        raise ValueError("Недостаточно числовых столбцов для расчёта корреляций.")\n    return df, num_cols\n\n` + `\n` + `def compute_correlations(file_bytes, region_pattern='.*', year_filter='all'):\n    df = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl')\n    df, num_cols = _clean_dataframe(df, region_pattern, year_filter)\n    corr = df[num_cols].corr(method='pearson')\n\n    matrix = corr.loc[num_cols, num_cols].values.tolist()\n    pairs = []\n    for i, var1 in enumerate(num_cols):\n        for j, var2 in enumerate(num_cols):\n            if i < j:\n                val = corr.loc[var1, var2]\n                if pd.notna(val):\n                    pairs.append({\n                        'var1': var1,\n                        'var2': var2,\n                        'r': float(val),\n                        'abs_r': abs(float(val))\n                    })\n\n    pairs = sorted([p for p in pairs if p['abs_r'] < 1.0], key=lambda x: x['abs_r'], reverse=True)\n    return {\n        'columns': num_cols,\n        'matrix': matrix,\n        'pairs': pairs,\n        'count_rows': int(len(df)),\n        'count_cols': int(len(num_cols))\n    }\n`;
+  const pythonBootstrap = `
+import io, numpy as np, pandas as pd
+
+def _find_matrix(df):
+    matrix_start_row = None
+    meta = {}
+    for i in range(len(df)):
+        row = df.iloc[i]
+        first = row.iloc[0]
+        if pd.notna(first) and isinstance(first, str) and any(k in first.lower() for k in ['параметр', 'количество', 'наблюдений', 'переменных', 'период']):
+            if len(row) >= 2 and pd.notna(row.iloc[1]):
+                meta[str(first).strip()] = str(row.iloc[1]).strip()
+            continue
+        if (pd.isna(first) or str(first).strip() == '') and len(row) >= 2 and pd.notna(row.iloc[1]) and str(row.iloc[1]).strip() != '':
+            matrix_start_row = i
+            break
+    return matrix_start_row, meta
+
+
+def list_regions(file_bytes):
+    excel = pd.ExcelFile(io.BytesIO(file_bytes), engine='openpyxl')
+    return excel.sheet_names
+
+
+def read_region_matrix(file_bytes, region_name):
+    excel = pd.ExcelFile(io.BytesIO(file_bytes), engine='openpyxl')
+    df = pd.read_excel(excel, sheet_name=region_name, engine='openpyxl')
+    matrix_start, meta = _find_matrix(df)
+    if matrix_start is None:
+        raise ValueError('Не удалось распознать матрицу корреляций для выбранного региона.')
+
+    header_row = df.iloc[matrix_start]
+    variables = []
+    for val in header_row[1:]:
+        if pd.notna(val) and str(val).strip() != '':
+            variables.append(str(val).strip())
+
+    corr = pd.DataFrame(index=variables, columns=variables, dtype=float)
+    data_start = matrix_start + 1
+    for offset, _ in enumerate(variables):
+        row_idx = data_start + offset
+        if row_idx >= len(df):
+            break
+        row = df.iloc[row_idx]
+        row_name = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else ''
+        if not row_name or row_name not in variables:
+            continue
+        for j, col_name in enumerate(variables, start=1):
+            if j < len(row):
+                val = row.iloc[j]
+                corr.loc[row_name, col_name] = float(val) if pd.notna(val) else np.nan
+
+    corr = corr.dropna(axis=0, how='all').dropna(axis=1, how='all')
+    return corr, meta
+
+
+def analyze_region(file_bytes, region_name):
+    corr, meta = read_region_matrix(file_bytes, region_name)
+    columns = list(corr.columns)
+    matrix = corr.values.tolist()
+    pairs = []
+    for i, var1 in enumerate(columns):
+        for j, var2 in enumerate(columns):
+            if i < j:
+                val = corr.loc[var1, var2]
+                if pd.notna(val) and abs(val) < 1.0:
+                    pairs.append({'var1': var1, 'var2': var2, 'r': float(val), 'abs_r': abs(float(val))})
+    pairs = sorted(pairs, key=lambda x: x['abs_r'], reverse=True)
+    return {'columns': columns, 'matrix': matrix, 'pairs': pairs, 'meta': meta}
+`;
 
   function setStatus(text) {
     document.getElementById('status').textContent = text;
@@ -203,10 +276,10 @@
     setStatus('Загрузка Pyodide...');
     pyodideReady = loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' })
       .then(async (py) => {
-        setStatus('Загрузка пакетов (pandas, numpy, openpyxl)...');
+        setStatus('Загрузка pandas, numpy, openpyxl...');
         await py.loadPackage(['pandas', 'numpy', 'openpyxl']);
         await py.runPythonAsync(pythonBootstrap);
-        setStatus('Готово к расчётам');
+        setStatus('Готово к работе');
         return py;
       });
     return pyodideReady;
@@ -214,8 +287,8 @@
 
   async function loadDatasetBytes() {
     if (datasetBytes) return datasetBytes;
-    setStatus('Загрузка встроенной базы данных...');
-    const resp = await fetch('Итоговая_база_данных_типизация_и_исправления_финальные.xlsx');
+    setStatus('Загрузка файла corr_all_regions_all.xlsx...');
+    const resp = await fetch('corr_all_regions_all.xlsx');
     const buffer = await resp.arrayBuffer();
     datasetBytes = new Uint8Array(buffer);
     setStatus('База данных загружена');
@@ -224,28 +297,30 @@
 
   function renderTable(pairs, threshold) {
     const container = document.getElementById('top-table');
-    if (!pairs.length) {
+    const filtered = pairs.filter(p => p.abs_r >= threshold);
+    if (!filtered.length) {
       container.innerHTML = '<p>Нет значимых корреляций для выбранного порога.</p>';
       return;
     }
-    const filtered = pairs.filter(p => p.abs_r >= threshold);
-    const rows = filtered.slice(0, 50).map(p => {
+    const rows = filtered.slice(0, 60).map(p => {
       const badgeClass = p.abs_r >= 0.7 ? 'strong' : (p.abs_r >= 0.5 ? 'moderate' : 'weak');
       const badgeText = p.abs_r >= 0.7 ? 'Сильная' : (p.abs_r >= 0.5 ? 'Умеренная' : 'Слабая');
       return `<tr><td>${p.var1}</td><td>${p.var2}</td><td>${p.r.toFixed(3)}</td><td><span class="pill ${badgeClass}">${badgeText}</span></td></tr>`;
     }).join('');
-    container.innerHTML = `<table><thead><tr><th>Переменная 1</th><th>Переменная 2</th><th>r</th><th>Сила</th></tr></thead><tbody>${rows}</tbody></table>`;
+    container.innerHTML = `<table><thead><tr><th>Показатель 1</th><th>Показатель 2</th><th>r</th><th>Сила</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
-  function renderSummary(result, threshold) {
+  function renderSummary(result, threshold, regionName) {
     const summary = document.getElementById('summary');
     const filtered = result.pairs.filter(p => p.abs_r >= threshold);
+    const metaItems = Object.entries(result.meta || {}).map(([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`).join('');
     summary.innerHTML = `
-      <li><strong>Строк данных:</strong> ${result.count_rows}</li>
-      <li><strong>Числовых показателей:</strong> ${result.count_cols}</li>
+      <li><strong>Регион:</strong> ${regionName}</li>
+      <li><strong>Число показателей:</strong> ${result.columns.length}</li>
       <li><strong>Всего пар:</strong> ${result.pairs.length}</li>
       <li><strong>Порог |r|:</strong> ${threshold.toFixed(2)}</li>
       <li><strong>Отобрано корреляций:</strong> ${filtered.length}</li>
+      ${metaItems}
     `;
   }
 
@@ -266,7 +341,7 @@
       colorbar: { title: 'r' }
     }];
     const layout = {
-      margin: { l: 80, r: 20, t: 40, b: 80 },
+      margin: { l: 80, r: 20, t: 30, b: 80 },
       paper_bgcolor: '#ffffff',
       plot_bgcolor: '#ffffff',
       font: { color: '#1f2933' }
@@ -311,23 +386,31 @@
     Plotly.newPlot('scatter3d', [trace], layout, {responsive: true});
   }
 
-  async function runAnalysis(fileBytes) {
-    const py = await loadPyodideAndPackages();
-    const region = document.getElementById('region').value?.trim() || '.*';
-    const year = (document.getElementById('year').value || 'all').trim() || 'all';
-    const threshold = parseFloat(document.getElementById('threshold').value);
-
-    setStatus('Расчёт корреляций...');
+  async function populateRegions(py, fileBytes) {
     const pyBytes = py.toPy(fileBytes);
     py.globals.set('file_bytes', pyBytes);
-    py.globals.set('region_pattern', region);
-    py.globals.set('year_filter', year);
-    const result = await py.runPythonAsync("compute_correlations(file_bytes, region_pattern, year_filter)");
+    const regions = await py.runPythonAsync('list_regions(file_bytes)');
+    const regionList = regions.toJs({ create_proxies: false });
+    const select = document.getElementById('region');
+    select.innerHTML = regionList.map(r => `<option value="${r}">${r}</option>`).join('');
+    return select.value;
+  }
+
+  async function runAnalysis(fileBytes) {
+    const py = await loadPyodideAndPackages();
+    const regionName = document.getElementById('region').value;
+    const threshold = parseFloat(document.getElementById('threshold').value);
+
+    setStatus('Обработка региона...');
+    const pyBytes = py.toPy(fileBytes);
+    py.globals.set('file_bytes', pyBytes);
+    py.globals.set('region_name', regionName);
+    const result = await py.runPythonAsync("analyze_region(file_bytes, region_name)");
     const data = result.toJs({ create_proxies: false });
     setStatus('Готово!');
 
     renderTable(data.pairs, threshold);
-    renderSummary(data, threshold);
+    renderSummary(data, threshold, regionName);
     renderHeatmap(data.columns, data.matrix);
     renderScatter3D(data.columns, data.pairs, threshold);
   }
@@ -341,11 +424,13 @@
     runAnalysis(buffer);
   });
 
-  // Подготовка окружения и автоматический первый запуск.
   (async () => {
-    await loadPyodideAndPackages();
+    const py = await loadPyodideAndPackages();
     const buffer = await loadDatasetBytes();
-    runAnalysis(buffer);
+    const firstRegion = await populateRegions(py, buffer);
+    if (firstRegion) {
+      runAnalysis(buffer);
+    }
   })();
 </script>
 </body>
