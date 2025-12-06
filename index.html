@@ -43,18 +43,13 @@
     h1 {
       margin: 0 0 0.35rem 0;
       font-size: 1.9rem;
-    }
-
-    p.lead {
-      margin: 0 0 0.6rem;
-      color: var(--muted);
-      max-width: 1100px;
+      font-weight: 400;
     }
 
     p.grant {
       margin: 0.2rem 0 0;
       color: #0f172a;
-      font-weight: 600;
+      font-weight: 400;
       max-width: 1100px;
     }
 
@@ -75,7 +70,7 @@
 
     .controls {
       display: grid;
-      grid-template-columns: 2.2fr 1.4fr 1.1fr 1.3fr;
+      grid-template-columns: 2.2fr 1.4fr 1.2fr;
       gap: 0.85rem;
       align-items: flex-end;
     }
@@ -111,10 +106,6 @@
       outline: 2px solid var(--accent);
       outline-offset: 1px;
       border-color: var(--accent);
-    }
-
-    #region-search {
-      font-size: 0.9rem;
     }
 
     button.primary {
@@ -160,20 +151,24 @@
       }
     }
 
-    #top-table table {
+    #top-table table,
+    #variable-table table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
     }
 
     #top-table th,
-    #top-table td {
+    #top-table td,
+    #variable-table th,
+    #variable-table td {
       padding: 0.45rem 0.4rem;
       border-bottom: 1px solid #e4e7eb;
       vertical-align: top;
     }
 
-    #top-table th {
+    #top-table th,
+    #variable-table th {
       text-align: left;
       color: var(--muted);
       font-size: 0.8rem;
@@ -181,29 +176,14 @@
       letter-spacing: 0.04em;
     }
 
-    #top-table tbody tr:hover {
+    #top-table tbody tr:hover,
+    #variable-table tbody tr:hover {
       background: #f8fafc;
     }
 
-    .pill {
-      padding: 0.15rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      color: #fff;
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    .strong {
-      background: #ea580c;
-    }
-
-    .moderate {
-      background: #16a34a;
-    }
-
-    .weak {
-      background: #0284c7;
+    .r-cell {
+      font-weight: 700;
+      border-radius: 6px;
     }
 
     .plots {
@@ -262,15 +242,20 @@
       color: var(--muted);
       margin-top: 0.05rem;
     }
+
+    .variable-controls {
+      max-width: 420px;
+      margin-bottom: 0.6rem;
+    }
+
+    .variable-controls label {
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Цифровая демографическая обсерватория: корреляционный анализ субъектов РФ</h1>
-    <p class="lead">
-      Дашборд визуализирует готовые байесовские корреляции социально-экономических и демографических показателей по каждому региону России на основе файла
-      <strong>corr_all_regions_all.xlsx</strong>.
-    </p>
+    <h1><strong>Цифровая демографическая обсерватория</strong>: корреляционный анализ субъектов РФ</h1>
     <p class="grant">
       Исследование выполнено за счёт средств гранта Российского научного фонда № 25-78-30004 «Цифровая демографическая обсерватория: разработка системы
       мониторинга демографических процессов в регионах России с использованием ГИС-технологий и больших данных»,
@@ -285,14 +270,9 @@
       <div class="controls">
         <div>
           <label for="region">Субъект РФ</label>
-          <select id="region" aria-label="Выбор субъекта РФ"></select>
+          <input id="region" list="region-options" type="text" placeholder="Начните вводить или выберите..." autocomplete="off" />
+          <datalist id="region-options"></datalist>
           <div class="tagline" id="region-count"></div>
-        </div>
-
-        <div>
-          <label for="region-search">Поиск по названию региона</label>
-          <input id="region-search" type="text" placeholder="Начните вводить название..." autocomplete="off" />
-          <div class="status" id="region-search-status"></div>
         </div>
 
         <div>
@@ -311,20 +291,6 @@
             Инициализация интерфейса...
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="panel grid-2">
-      <div>
-        <h3>Топ корреляций для выбранного региона</h3>
-        <p class="tagline">
-          Выводятся пары показателей с максимальным модулем коэффициента корреляции Пирсона с байесовской поправкой.
-        </p>
-        <div id="top-table"></div>
-      </div>
-      <div>
-        <h3>Сводка по региону</h3>
-        <ul id="summary"></ul>
       </div>
     </section>
 
@@ -349,25 +315,334 @@
       </div>
     </section>
 
-    <section class="panel methodology">
-      <h3>Методика расчёта корреляций и формирования базы</h3>
-      <p>
-        Корреляции рассчитаны на основе модифицированного коэффициента Пирсона с байесовской поправкой, реализованного в скрипте <code>corr_bayes_rf.py</code>.
-        Для каждой пары показателей из исходной базы берутся ряды значений по региону, удаляются пропуски, затем вычисляется стандартный коэффициент Пирсона
-        <em>r</em>. Байесовская поправка снижает смещение при малых выборках и задаётся формулой
-        <em>r<sub>bayes</sub> = r · (1 − (1 − r²)/(n − 2))</em>, где <em>n</em> — число наблюдений пары.
-      </p>
-      <p>
-        На этапе подготовки данных для каждой территории удаляются строковые столбцы, оставляются только числовые показатели, исключаются константные признаки
-        и переменные с долей пропусков более 70 %. Для каждого региона формируется квадратная матрица корреляций, которая сохраняется в отдельном листе файла
-        <strong>corr_all_regions_all.xlsx</strong> вместе с краткой метаинформацией (число наблюдений, число переменных, период наблюдения).
-      </p>
-      <p>
-        На данной странице браузер с помощью библиотеки <strong>SheetJS</strong> читает Excel-файл целиком на стороне клиента, без серверной части и без
-        интерпретатора Python. Далее матрицы для выбранного субъекта РФ парсятся, строятся ранжированные списки корреляций, тепловая карта и трёхмерное облако
-        точек с использованием <strong>Plotly</strong>.
-      </p>
+    <section class="panel grid-2">
+      <div>
+        <h3>Топ корреляций</h3>
+        <p class="tagline">
+          Выводятся пары показателей с максимальным модулем коэффициента корреляции Пирсона с байесовской поправкой.
+        </p>
+        <div id="top-table"></div>
+      </div>
+      <div>
+        <h3>Сводка по региону</h3>
+        <ul id="summary"></ul>
+      </div>
     </section>
+
+    <section class="panel" id="variable-panel">
+      <h3>Корреляция с выбранным показателем</h3>
+      <div class="variable-controls">
+        <label for="variable-select">Показатель</label>
+        <input id="variable-select" list="variable-options" type="text" placeholder="Начните вводить название показателя..." autocomplete="off" />
+        <datalist id="variable-options"></datalist>
+      </div>
+      <div id="variable-table"></div>
+    </section>
+
+    <section class="panel methodology">
+      <h3>Методика расчёта</h3> 
+  <h4>1. Исходные данные и общая схема</h4>
+  <p style="text-align: justify;">
+    В качестве входа используется панельная база в формате Excel, где каждая строка соответствует комбинации
+    «регион – год», а столбцы представляют собой числовые социально-экономические и демографические показатели,
+    а также служебные поля «Регион», «Год» и (при наличии) «Тип».
+  </p>
+  <p style="text-align: justify;">
+    Скрипт <code>corr_bayes_rf.py</code> (файл <code>corr.py</code>) реализует два связанных контура:
+  </p>
+  <p style="text-align: justify;">
+    1) расчёт матрицы байесовски скорректированных корреляций по одному региону или по совокупности регионов;<br>
+    2) формирование многолистовой рабочей книги <code>corr_all_regions_all.xlsx</code>, в которой каждый лист содержит:
+  </p>
+  <p style="text-align: justify;">
+    &mdash; мета-информацию по региону (число наблюдений, число переменных, временной охват);<br>
+    &mdash; квадратную корреляционную матрицу по всем отобранным показателям данного региона.
+  </p>
+  <p style="text-align: justify;">
+    Файл <code>corr_all_regions_all.xlsx</code> затем используется дашбордом в качестве основной базы для визуализации.
+  </p>
+
+  <h4>2. Предобработка данных</h4>
+
+  <h5>2.1. Фильтрация по типу территориальной единицы</h5>
+  <p style="text-align: justify;">
+    При чтении исходного файла выполняется очистка от общероссийских агрегатов: если в таблице присутствует
+    колонка <code>Тип</code>, то строки с <code>Тип = "Страна"</code> исключаются, а сама колонка удаляется:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \text{df} \leftarrow \text{df} \;\big|\; \big(\text{Тип} \neq \text{"Страна"}\big),
+      \quad \text{затем удаляется столбец } \text{Тип}.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Таким образом, в дальнейший анализ попадают только региональные/субъектные наблюдения.
+  </p>
+
+  <h5>2.2. Фильтрация по региону и году</h5>
+  <p style="text-align: justify;">
+    В однорегиональном режиме (функция <code>load_data</code>) применяется фильтр по регулярному выражению к столбцу
+    «Регион» и, при необходимости, по году:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \text{df} \leftarrow \text{df} \;\big|\;
+      \big(\text{Регион} \text{ соответствует } \text{region\_regex}\big),
+    \]
+  </p>
+  <p style="text-align: center;">
+    \[
+      \text{df} \leftarrow \text{df} \;\big|\;
+      \big(\text{Год} = \text{year\_filter}\big)
+      \quad \text{(если } \text{year\_filter} \neq \text{"all"}\text{)}.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    В мульти-региональном режиме (<code>save_all_regions_analysis</code>) фильтр по году применяется аналогично, но далее
+    данные группируются по регионам.
+  </p>
+  <p style="text-align: justify;">
+    После фильтрации выполняется удаление возможных дублей по паре «Регион – Год»:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \text{df} \leftarrow \operatorname{unique}_{(\text{Регион}, \text{Год})}(\text{df}).
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Минимальное требование к объёму данных — не менее двух наблюдений (лет) по региону; при меньшем числе строк
+    расчёт корреляций не производится.
+  </p>
+
+  <h5>2.3. Отбор столбцов и работа с пропусками</h5>
+  <p style="text-align: justify;">
+    Для расчёта корреляций используются только числовые столбцы, исключая служебные поля:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \mathcal{C}_{\text{num}} =
+      \{ c \in \operatorname{Cols}(\text{df}) \,:\, c \text{ числовой}\}
+      \setminus \{\text{"Регион"}, \text{"Год"}\}.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Далее удаляются переменные с чрезмерной долей пропусков. Пусть \(N\) — число строк (наблюдений) после фильтрации.
+    Для каждого столбца \(c\) считается число непустых значений \(\operatorname{nonmiss}(c)\). Столбец сохраняется, если:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \operatorname{nonmiss}(c) \;\geq\; 0{,}30 \cdot N.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    То есть отбираются показатели, по которым имеется не менее 30&nbsp;% заполненных наблюдений; переменные с более чем
+    70&nbsp;% пропусков исключаются.
+  </p>
+
+  <h5>2.4. Исключение константных переменных</h5>
+  <p style="text-align: justify;">
+    На следующем шаге исключаются «константные» признаки, то есть такие, у которых в выборке наблюдается не более одного
+    уникального значения:
+  </p>
+  <p style="text-align: center;">
+    \[
+      c \text{ исключается, если } \#\{\operatorname{unique}(c)\} \leq 1.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Это предотвращает появление нулевой дисперсии и некорректных корреляционных оценок.
+  </p>
+  <p style="text-align: justify;">
+    Итогом предобработки для каждой комбинации регион/год-фильтр является подтаблица:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \text{df\_clean} =
+      \text{df}[\mathcal{C}_{\text{num}} \cup \{\text{"Регион"}, \text{"Год"}\}],
+    \]
+  </p>
+  <p style="text-align: justify;">
+    где \(\mathcal{C}_{\text{num}}\) — очищенный список числовых признаков, допущенных к расчёту корреляций.
+  </p>
+
+  <h4>3. Расчёт скорректированного коэффициента корреляции</h4>
+
+  <h5>3.1. Базовый коэффициент Пирсона</h5>
+  <p style="text-align: justify;">
+    Для каждой пары числовых показателей \((X, Y)\) сначала проводится выравнивание по ненулевым
+    (непропущенным) наблюдениям. Массивы исходных значений приводятся к двум векторам одинаковой длины:
+  </p>
+  <p style="text-align: center;">
+    \[
+      X = (x_1, \dots, x_n), \quad
+      Y = (y_1, \dots, y_n),
+    \]
+  </p>
+  <p style="text-align: justify;">
+    где каждая пара \((x_t, y_t)\) не содержит пропусков. Наблюдения с \(x_t = \text{NaN}\) или
+    \(y_t = \text{NaN}\) исключаются.
+  </p>
+  <p style="text-align: justify;">
+    Проверяется ненулевая дисперсия обоих признаков:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \operatorname{Var}(X) > 0,\quad \operatorname{Var}(Y) > 0.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    При \(n < 2\) или нулевой дисперсии хотя бы одного признака корреляция не считается и возвращается пропуск (NaN).
+  </p>
+  <p style="text-align: justify;">
+    Базовый коэффициент корреляции Пирсона \(r\) определяется по классической формуле:
+  </p>
+  <p style="text-align: center;">
+    \[
+      \bar{x} = \frac{1}{n} \sum_{t=1}^{n} x_t,\quad
+      \bar{y} = \frac{1}{n} \sum_{t=1}^{n} y_t,
+    \]
+  </p>
+  <p style="text-align: center;">
+    \[
+      r =
+      \frac{\displaystyle \sum_{t=1}^{n} (x_t - \bar{x})(y_t - \bar{y})}
+           {\sqrt{\displaystyle \sum_{t=1}^{n} (x_t - \bar{x})^2}
+            \sqrt{\displaystyle \sum_{t=1}^{n} (y_t - \bar{y})^2}}.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    В реализации используется вычисление через <code>numpy.corrcoef</code>, что эквивалентно приведённой формуле.
+  </p>
+
+  <h5>3.2. Байесовская поправка</h5>
+  <p style="text-align: justify;">
+    Далее к базовому коэффициенту применяется эмпирическая байесовская поправка, сглаживающая оценки при малых
+    выборках и сильно «шумных» корреляциях. Пусть \(r\) — исходная оценка Пирсона, \(n\) — число использованных
+    наблюдений пары \((X,Y)\). Итоговый скорректированный коэффициент \(r_{\text{bayes}}\) задаётся:
+  </p>
+  <p style="text-align: center;">
+    \[
+      r_{\text{bayes}} \;=\;
+      r \,\Bigg( 1 - \frac{1 - r^2}{n - 2} \Bigg).
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Отметим, что:
+  </p>
+  <p style="text-align: justify;">
+    &mdash; при \(|r| \to 1\) поправочный множитель стремится к 1, то есть сильные устойчивые связи почти не корректируются;<br>
+    &mdash; при малом \(n\) и умеренных значениях \(|r|\) множитель
+    \(1 - \frac{1 - r^2}{n - 2}\) заметно меньше 1, что приводит к «усадке» (shrinkage) оценок в сторону нуля;<br>
+    &mdash; при росте \(n\) (при прочих равных) поправка становится всё менее существенной.
+  </p>
+  <p style="text-align: justify;">
+    В коде функция расчёта корреляции выглядит концептуально как:
+  </p>
+  <p style="text-align: center;">
+    \[
+      r_{\text{bayes}}(X,Y) =
+      \begin{cases}
+        \text{NaN}, & n < 2 \text{ или } \operatorname{Var}(X) = 0 \text{ или } \operatorname{Var}(Y) = 0, \\
+        r \Big(1 - \dfrac{1 - r^2}{n - 2}\Big), & \text{иначе.}
+      \end{cases}
+    \]
+  </p>
+  <p style="text-align: justify;">
+    Именно \(r_{\text{bayes}}\) заносится в итоговую матрицу.
+  </p>
+
+  <h4>4. Формирование корреляционных матриц и Excel-базы</h4>
+
+  <h5>4.1. Корреляционная матрица по региону</h5>
+  <p style="text-align: justify;">
+    Для каждого региона и выбранного периода формируется список числовых показателей
+    \(\mathcal{C}_{\text{num}}\) после предобработки. Далее строится квадратная корреляционная матрица
+    размера \(k \times k\), где \(k = |\mathcal{C}_{\text{num}}|\):
+  </p>
+  <p style="text-align: center;">
+    \[
+      \mathbf{R} =
+      \begin{pmatrix}
+        r_{\text{bayes}}(X_1, X_1) & \dots & r_{\text{bayes}}(X_1, X_k) \\
+        \vdots & \ddots & \vdots \\
+        r_{\text{bayes}}(X_k, X_1) & \dots & r_{\text{bayes}}(X_k, X_k)
+      \end{pmatrix},
+    \]
+  </p>
+  <p style="text-align: justify;">
+    где \(X_1, \dots, X_k\) — отобранные показатели, а
+  </p>
+  <p style="text-align: center;">
+    \[
+      r_{\text{bayes}}(X_i, X_j) = r_{\text{bayes}}(X_j, X_i),
+      \quad
+      r_{\text{bayes}}(X_i, X_i) = 1.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    На практике матрица строится по верхнетреугольной части, после чего значения симметрично дублируются:
+  </p>
+  <p style="text-align: center;">
+    \[
+      R_{ij} = R_{ji} = r_{\text{bayes}}(X_i, X_j),
+      \quad \text{для } i \leq j.
+    \]
+  </p>
+  <p style="text-align: justify;">
+    После расчёта из матрицы дополнительно удаляются строки и столбцы, полностью состоящие из пропусков (NaN), чтобы
+    исключить показатели, по которым не удалось рассчитать ни одной ненулевой корреляции.
+  </p>
+
+  <h5>4.2. Мульти-региональная рабочая книга</h5>
+  <p style="text-align: justify;">
+    Функция <code>save_all_regions_analysis</code> формирует выходной файл
+    <code>corr_all_regions_all.xlsx</code> (при <code>year_filter = "all"</code>) — именно его
+    использует дашборд.
+  </p>
+  <p style="text-align: justify;">
+    Для каждого региона \(r\) в исходной выборке:
+  </p>
+  <p style="text-align: justify;">
+    1) отбираются строки \(\text{df}_{r} = \text{df\_all} \;|\; (\text{Регион} = r)\);<br>
+    2) к \(\text{df}_{r}\) применяются те же процедуры предобработки (фильтр по пропускам, удаление константных столбцов);<br>
+    3) вычисляется корреляционная матрица \(\mathbf{R}_r\) по \(k_r\) показателям;<br>
+    4) на соответствующий лист Excel с именем, совпадающим с названием региона (усечённым до 31 символа),
+       записываются:
+  </p>
+  <p style="text-align: justify;">
+    &mdash; блок метаданных (число наблюдений \(N_r\), число переменных \(k_r\), период
+    \([\min(\text{Год}_r), \max(\text{Год}_r)]\));<br>
+    &mdash; ниже, с отступом по строкам, — сама матрица \(\mathbf{R}_r\): первая строка — заголовки колонок
+    (названия показателей), первый столбец — названия показателей по строкам, далее — значения
+    \(r_{\text{bayes}}\).
+  </p>
+  <p style="text-align: justify;">
+    Таким образом, <code>corr_all_regions_all.xlsx</code> представляет собой «энциклопедию» региональных корреляционных
+    структур: каждый лист — отдельный субъект РФ, каждая ячейка в квадратной части листа — байесовски
+    скорректированный коэффициент корреляции между двумя индикаторами, рассчитанный по временным рядам данного региона.
+  </p>
+
+  <h4>5. Интерпретация и ограничения</h4>
+  <p style="text-align: justify;">
+    1) <strong>Временная база.</strong> Коэффициенты рассчитываются по временным рядам внутри региона, то есть
+    отражают взаимосвязи динамики показателей во времени, а не перекрёстные срезы между регионами.
+  </p>
+  <p style="text-align: justify;">
+    2) <strong>Неравная длина рядов.</strong> Период анализа может отличаться по регионам и показателям; за счёт
+    фильтра по пропускам в расчёт по каждой паре \((X,Y)\) входят только годы с одновременным наличием обоих значений.
+  </p>
+  <p style="text-align: justify;">
+    3) <strong>Сглаживание оценок.</strong> Байесовская поправка уменьшает модуль корреляции при малом числе наблюдений,
+    что снижает риск гипер-интерпретации «случайно высоких» связей на коротких рядах.
+  </p>
+  <p style="text-align: justify;">
+    4) <strong>Отбор признаков.</strong> За счёт жёсткой фильтрации по пропускам и константности в матрицу попадают
+    относительно «надёжные» показатели, по которым есть непустое и вариативное наблюдение во времени.
+  </p>
+  <p style="text-align: justify;">
+    
+  </p>
+</section>
 
     <div class="footer panel">
       Ситковский Арсений Михайлович, Рославцев Станислав Васильевич, 2025
@@ -378,7 +653,11 @@
     const AppState = {
       workbook: null,
       sheetNames: [],
-      regionCache: {}
+      regionCache: {},
+      selectedVariable: null,
+      currentVariables: [],
+      latestRegionData: null,
+      latestRegionName: null
     };
 
     function setStatus(text) {
@@ -401,6 +680,32 @@
     function formatNumber(value, digits = 3) {
       if (value === null || value === undefined || !isFinite(value)) return '';
       return value.toFixed(digits);
+    }
+
+    function interpolateColor(start, end, t) {
+      return start.map((c, i) => Math.round(c + (end[i] - c) * t));
+    }
+
+    function getCorrelationColor(r) {
+      if (r === null || r === undefined || !isFinite(r)) return '#e5e7eb';
+      const clamped = Math.max(-1, Math.min(1, r));
+      const negative = [12, 74, 110];
+      const neutral = [248, 250, 252];
+      const positive = [185, 28, 28];
+
+      if (clamped < 0) {
+        const t = (clamped + 1) / 1;
+        const [r1, g1, b1] = interpolateColor(negative, neutral, t);
+        return `rgb(${r1}, ${g1}, ${b1})`;
+      }
+
+      const [r2, g2, b2] = interpolateColor(neutral, positive, clamped);
+      return `rgb(${r2}, ${g2}, ${b2})`;
+    }
+
+    function getTextColorForBg(r) {
+      if (r === null || r === undefined || !isFinite(r)) return '#0b1220';
+      return Math.abs(r) > 0.55 ? '#ffffff' : '#0b1220';
     }
 
     function parseRegionSheet(sheetData) {
@@ -520,23 +825,14 @@
 
       const rowsHtml = slice
         .map(p => {
-          let badgeClass = 'weak';
-          let badgeText = 'Слабая';
-
-          if (p.abs_r >= 0.7) {
-            badgeClass = 'strong';
-            badgeText = 'Сильная';
-          } else if (p.abs_r >= 0.5) {
-            badgeClass = 'moderate';
-            badgeText = 'Умеренная';
-          }
+          const bg = getCorrelationColor(p.r);
+          const textColor = getTextColorForBg(p.r);
 
           return (
             '<tr>' +
             '<td>' + p.var1 + '</td>' +
             '<td>' + p.var2 + '</td>' +
-            '<td>' + formatNumber(p.r) + '</td>' +
-            '<td><span class="pill ' + badgeClass + '">' + badgeText + '</span></td>' +
+            '<td class="r-cell" style="background:' + bg + ';color:' + textColor + ';">' + formatNumber(p.r) + '</td>' +
             '</tr>'
           );
         })
@@ -549,7 +845,6 @@
         '<th>Показатель 1</th>' +
         '<th>Показатель 2</th>' +
         '<th>Коэффициент r</th>' +
-        '<th>Сила связи</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody>' +
@@ -620,6 +915,111 @@
       });
 
       el.innerHTML = parts.join('');
+    }
+
+    function populateVariableSelector(variables) {
+      const datalist = document.getElementById('variable-options');
+      const input = document.getElementById('variable-select');
+      if (!datalist || !input) return;
+
+      if (!Array.isArray(variables) || !variables.length) {
+        datalist.innerHTML = '';
+        input.value = '';
+        AppState.selectedVariable = null;
+        return;
+      }
+
+      datalist.innerHTML = variables
+        .map(v => '<option value="' + v.replace(/"/g, '&quot;') + '"></option>')
+        .join('');
+
+      const normalized = (AppState.selectedVariable || '').toLowerCase();
+      const exists = variables.find(v => v.toLowerCase() === normalized);
+      const nextValue = exists || variables[0];
+
+      input.value = nextValue;
+      AppState.selectedVariable = nextValue;
+    }
+
+    function getSelectedVariableName(variables) {
+      const input = document.getElementById('variable-select');
+      if (!input) return null;
+      const value = input.value.trim();
+      if (!value) return null;
+      const match = (variables || []).find(v => v.toLowerCase() === value.toLowerCase());
+      return match || null;
+    }
+
+    function renderVariableTable(result) {
+      const container = document.getElementById('variable-table');
+      if (!container) return;
+
+      const variables = result.variables || [];
+      const matrix = result.matrix || [];
+      const selectedVar = getSelectedVariableName(variables);
+
+      if (!selectedVar) {
+        container.innerHTML = '<p>Выберите показатель, чтобы увидеть его корреляции.</p>';
+        return;
+      }
+
+      const idx = variables.findIndex(v => v === selectedVar);
+      if (idx === -1) {
+        container.innerHTML = '<p>Выбранный показатель отсутствует в текущей матрице.</p>';
+        return;
+      }
+
+      AppState.selectedVariable = selectedVar;
+
+      const rows = [];
+      for (let j = 0; j < variables.length; j++) {
+        if (j === idx) continue;
+        const r = matrix[idx][j];
+        if (r === null || r === undefined || !isFinite(r)) continue;
+        rows.push({
+          base: selectedVar,
+          paired: variables[j],
+          r: r,
+          abs_r: Math.abs(r)
+        });
+      }
+
+      rows.sort((a, b) => b.abs_r - a.abs_r);
+
+      if (!rows.length) {
+        container.innerHTML = '<p>Нет корректных корреляций для выбранного показателя.</p>';
+        return;
+      }
+
+      const maxRows = 120;
+      const rowsHtml = rows
+        .slice(0, maxRows)
+        .map(item => {
+          const bg = getCorrelationColor(item.r);
+          const textColor = getTextColorForBg(item.r);
+          return (
+            '<tr>' +
+            '<td>' + item.base + '</td>' +
+            '<td>' + item.paired + '</td>' +
+            '<td class="r-cell" style="background:' + bg + ';color:' + textColor + ';">' + formatNumber(item.r) + '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+
+      container.innerHTML =
+        '<table>' +
+        '<thead>' +
+        '<tr>' +
+        '<th>Выбранный показатель</th>' +
+        '<th>Связанный показатель</th>' +
+        '<th>Коэффициент r</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody>' +
+        rowsHtml +
+        '</tbody>' +
+        '</table>';
     }
 
     function renderHeatmap(columns, matrix) {
@@ -765,50 +1165,23 @@
     }
 
     function populateRegionSelect() {
-      const select = document.getElementById('region');
-      if (!select) return;
+      const datalist = document.getElementById('region-options');
+      const input = document.getElementById('region');
+      if (!datalist || !input) return;
 
       const regions = AppState.sheetNames || [];
       if (!regions.length) {
-        select.innerHTML = '';
+        datalist.innerHTML = '';
+        input.value = '';
         return;
       }
 
-      const optionsHtml = regions
-        .map(name => '<option value="' + name.replace(/"/g, '&quot;') + '">' + name + '</option>')
+      datalist.innerHTML = regions
+        .map(name => '<option value="' + name.replace(/"/g, '&quot;') + '"></option>')
         .join('');
 
-      select.innerHTML = optionsHtml;
-    }
-
-    function filterRegionsBySearch() {
-      const searchInput = document.getElementById('region-search');
-      const select = document.getElementById('region');
-      const status = document.getElementById('region-search-status');
-      if (!searchInput || !select) return;
-
-      const query = searchInput.value.toLowerCase().trim();
-      const regions = AppState.sheetNames || [];
-
-      if (!query) {
-        populateRegionSelect();
-        if (status) status.textContent = '';
-        return;
-      }
-
-      const filtered = regions.filter(name => name.toLowerCase().includes(query));
-      if (!filtered.length) {
-        select.innerHTML = '';
-        if (status) status.textContent = 'Регионов по данному запросу не найдено.';
-        return;
-      }
-
-      select.innerHTML = filtered
-        .map(name => '<option value="' + name.replace(/"/g, '&quot;') + '">' + name + '</option>')
-        .join('');
-
-      if (status) {
-        status.textContent = 'Найдено регионов: ' + filtered.length + '.';
+      if (!input.value && regions.length > 0) {
+        input.value = regions[0];
       }
     }
 
@@ -828,9 +1201,15 @@
     }
 
     function getSelectedRegionName() {
-      const select = document.getElementById('region');
-      if (!select || !select.value) return null;
-      return select.value;
+      const input = document.getElementById('region');
+      if (!input || !input.value) return null;
+
+      const value = input.value.trim();
+      if (!value) return null;
+
+      const regions = AppState.sheetNames || [];
+      const match = regions.find(name => name.toLowerCase() === value.toLowerCase());
+      return match || null;
     }
 
     function getRegionData(regionName) {
@@ -860,20 +1239,35 @@
 
     function runAnalysis() {
       try {
+        const regionInput = document.getElementById('region');
         const regionName = getSelectedRegionName();
         const threshold = getThresholdValue();
 
         if (!regionName) {
-          setStatus('Выберите субъект РФ для анализа.');
+          const typed = regionInput && regionInput.value ? regionInput.value.trim() : '';
+          if (typed) {
+            setStatus('Регион "' + typed + '" не найден. Выберите субъект из списка.');
+          } else {
+            setStatus('Выберите субъект РФ для анализа.');
+          }
           return;
         }
 
         setStatus('Анализ региона "' + regionName + '"...');
 
+        if (regionInput) {
+          regionInput.value = regionName;
+        }
+
         const data = getRegionData(regionName);
+        AppState.latestRegionData = data;
+        AppState.latestRegionName = regionName;
+        AppState.currentVariables = data.variables || [];
 
         renderTable(data.pairs, threshold);
         renderSummary(data, threshold, regionName);
+        populateVariableSelector(data.variables);
+        renderVariableTable(data);
         renderHeatmap(data.variables, data.matrix);
         renderScatter3D(data.variables, data.pairs, threshold);
 
@@ -909,13 +1303,21 @@
         regionSelect.addEventListener('change', () => {
           runAnalysis();
         });
+        regionSelect.addEventListener('blur', () => {
+          runAnalysis();
+        });
       }
 
-      const regionSearch = document.getElementById('region-search');
-      if (regionSearch) {
-        regionSearch.addEventListener('input', () => {
-          filterRegionsBySearch();
-        });
+      const variableSelect = document.getElementById('variable-select');
+      if (variableSelect) {
+        const rerenderVariableTable = () => {
+          if (AppState.latestRegionData) {
+            renderVariableTable(AppState.latestRegionData);
+          }
+        };
+
+        variableSelect.addEventListener('change', rerenderVariableTable);
+        variableSelect.addEventListener('input', rerenderVariableTable);
       }
 
       await loadWorkbook();
