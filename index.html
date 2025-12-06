@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Цифровая демографическая обсерватория: корреляционный анализ субъектов РФ</title>
-  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.26.0/plotly.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+  <!-- Plotly для визуализаций -->
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.28.0/plotly.min.js"></script>
+  <!-- SheetJS для чтения Excel в браузере -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <style>
     :root {
       --bg: #f6f7fb;
@@ -16,7 +20,11 @@
       --accent: #2563eb;
       --accent-2: #22c55e;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: "Inter", "Segoe UI", system-ui, sans-serif;
       margin: 0;
@@ -25,31 +33,37 @@
       background: var(--bg);
       color: var(--text);
     }
+
     header {
       padding: 1.75rem 1.5rem 1rem;
       background: linear-gradient(135deg, #f7fafc, #eef2f7);
       border-bottom: 1px solid var(--border);
     }
+
     h1 {
       margin: 0 0 0.35rem 0;
       font-size: 1.9rem;
     }
+
     p.lead {
       margin: 0 0 0.6rem;
       color: var(--muted);
       max-width: 1100px;
     }
+
     p.grant {
       margin: 0.2rem 0 0;
       color: #0f172a;
       font-weight: 600;
       max-width: 1100px;
     }
+
     main {
       padding: 1.5rem;
       max-width: 1280px;
       margin: 0 auto;
     }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -58,26 +72,51 @@
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       margin-bottom: 1rem;
     }
+
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: 2.2fr 1.4fr 1.1fr 1.3fr;
       gap: 0.85rem;
       align-items: flex-end;
     }
+
+    @media (max-width: 1024px) {
+      .controls {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+    }
+
     label {
       font-weight: 700;
       display: block;
       margin-bottom: 0.3rem;
+      font-size: 0.92rem;
     }
-    select, input, button {
+
+    select,
+    input,
+    button {
       width: 100%;
       padding: 0.65rem 0.75rem;
       border-radius: 10px;
       border: 1px solid #cbd2d9;
       background: #fff;
       color: inherit;
-      font-size: 0.98rem;
+      font-size: 0.95rem;
     }
+
+    select:focus,
+    input:focus,
+    button:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+
+    #region-search {
+      font-size: 0.9rem;
+    }
+
     button.primary {
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
       border: none;
@@ -85,83 +124,202 @@
       cursor: pointer;
       font-weight: 800;
       letter-spacing: 0.01em;
-      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.15s ease;
       box-shadow: 0 12px 34px rgba(37, 99, 235, 0.25);
     }
-    button.primary:hover { transform: translateY(-1px); }
+
+    button.primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.02);
+    }
+
+    button.primary:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.25);
+    }
+
     .status {
       margin-top: 0.45rem;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
+
+    .status strong {
+      font-weight: 700;
+    }
+
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
       gap: 1rem;
     }
+
+    @media (max-width: 980px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
     #top-table table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
-    #top-table th, #top-table td {
-      padding: 0.55rem;
+
+    #top-table th,
+    #top-table td {
+      padding: 0.45rem 0.4rem;
       border-bottom: 1px solid #e4e7eb;
       vertical-align: top;
     }
-    #top-table th { text-align: left; color: var(--muted); }
+
+    #top-table th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    #top-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
     .pill {
       padding: 0.15rem 0.55rem;
       border-radius: 999px;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       color: #fff;
       display: inline-block;
+      white-space: nowrap;
     }
-    .strong { background: #ea580c; }
-    .moderate { background: #16a34a; }
-    .weak { background: #0284c7; }
+
+    .strong {
+      background: #ea580c;
+    }
+
+    .moderate {
+      background: #16a34a;
+    }
+
+    .weak {
+      background: #0284c7;
+    }
+
     .plots {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 1rem;
     }
-    @media (min-width: 1080px) { .plots { grid-template-columns: 1fr 1fr; } }
+
+    @media (max-width: 1080px) {
+      .plots {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .footer {
       margin-top: 1rem;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
     }
-    .methodology h3 { margin-top: 0; }
+
+    .methodology h3 {
+      margin-top: 0;
+    }
+
+    #summary {
+      padding-left: 1rem;
+      margin: 0.2rem 0 0 0;
+      font-size: 0.9rem;
+    }
+
+    #summary li {
+      margin-bottom: 0.15rem;
+    }
+
+    .summary-metric-highlight {
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .heatmap-container,
+    .scatter3d-container {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 0.25rem;
+      background: #f9fafb;
+    }
+
+    .small-caption {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.05rem;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Цифровая демографическая обсерватория: корреляционный анализ субъектов РФ</h1>
-    <p class="lead">Дашборд визуализирует готовые байесовские корреляции социально-экономических показателей по каждому региону России на основе файла <strong>corr_all_regions_all.xlsx</strong>.</p>
-    <p class="grant">Исследование выполнено за счёт средств гранта Российского научного фонда № 25-78-30004 «Цифровая демографическая обсерватория: разработка системы мониторинга демографических процессов в регионах России с использованием ГИС-технологий и больших данных», <a href="https://rscf.ru/project/25-78-30004/" target="_blank" rel="noopener">https://rscf.ru/project/25-78-30004/</a>.</p>
+    <p class="lead">
+      Дашборд визуализирует готовые байесовские корреляции социально-экономических и демографических показателей по каждому региону России на основе файла
+      <strong>corr_all_regions_all.xlsx</strong>.
+    </p>
+    <p class="grant">
+      Исследование выполнено за счёт средств гранта Российского научного фонда № 25-78-30004 «Цифровая демографическая обсерватория: разработка системы
+      мониторинга демографических процессов в регионах России с использованием ГИС-технологий и больших данных»,
+      <a href="https://rscf.ru/project/25-78-30004/" target="_blank" rel="noopener">
+        https://rscf.ru/project/25-78-30004/
+      </a>.
+    </p>
   </header>
+
   <main>
     <section class="panel">
       <div class="controls">
         <div>
           <label for="region">Субъект РФ</label>
           <select id="region" aria-label="Выбор субъекта РФ"></select>
+          <div class="tagline" id="region-count"></div>
         </div>
+
         <div>
-          <label for="threshold">Порог |r|</label>
+          <label for="region-search">Поиск по названию региона</label>
+          <input id="region-search" type="text" placeholder="Начните вводить название..." autocomplete="off" />
+          <div class="status" id="region-search-status"></div>
+        </div>
+
+        <div>
+          <label for="threshold">Порог |r| для отбора корреляций</label>
           <input id="threshold" type="range" min="0" max="0.9" step="0.05" value="0.5" />
-          <div class="status">Текущий порог: <span id="threshold-value">0.50</span></div>
+          <div class="status">
+            Текущий порог: <strong><span id="threshold-value">0.50</span></strong>
+          </div>
         </div>
+
         <div>
-          <button class="primary" id="run-btn" type="button">Обновить визуализацию</button>
-          <div class="status" id="status">Инициализация окружения...</div>
+          <button class="primary" id="run-btn" type="button">
+            Обновить визуализацию
+          </button>
+          <div class="status" id="status">
+            Инициализация интерфейса...
+          </div>
         </div>
       </div>
     </section>
 
     <section class="panel grid-2">
       <div>
-        <h3>Топ корреляций</h3>
+        <h3>Топ корреляций для выбранного региона</h3>
+        <p class="tagline">
+          Выводятся пары показателей с максимальным модулем коэффициента корреляции Пирсона с байесовской поправкой.
+        </p>
         <div id="top-table"></div>
       </div>
       <div>
@@ -172,20 +330,43 @@
 
     <section class="panel plots">
       <div>
-        <h3>Тепловая карта</h3>
-        <div id="heatmap" style="height:540px;"></div>
+        <h3>Тепловая карта матрицы корреляций</h3>
+        <div class="heatmap-container">
+          <div id="heatmap" style="height:540px;"></div>
+        </div>
+        <p class="small-caption">
+          Ярко-красные значения соответствуют сильным положительным связям, тёмно-синие — сильным отрицательным. Диагональ <em>r = 1</em> опущена из анализа пар.
+        </p>
       </div>
       <div>
-        <h3>3D облако корреляций</h3>
-        <div id="scatter3d" style="height:540px;"></div>
+        <h3>3D-облако значимых корреляций</h3>
+        <div class="scatter3d-container">
+          <div id="scatter3d" style="height:540px;"></div>
+        </div>
+        <p class="small-caption">
+          Каждая точка — пара показателей, координаты по осям соответствуют их индексам в матрице, вертикальная ось — величина коэффициента <em>r</em>.
+        </p>
       </div>
     </section>
 
     <section class="panel methodology">
-      <h3>Методика расчёта</h3>
-      <p>Корреляции рассчитаны по байесовской корректировке коэффициента Пирсона, описанной в <code>corr.py</code>. Для каждой пары показателей из исходной базы берутся ряды значений по региону, удаляются пропуски, затем вычисляется стандартный коэффициент Пирсона <em>r</em>. Байесовская поправка снижает смещение при малых выборках: <em>r<sub>bayes</sub> = r · (1 − (1 − r²)/(n − 2))</em>, где <em>n</em> — число наблюдений пары.</p>
-      <p>Для подготовки корреляционных матриц удалены строковые столбцы, оставлены только числовые показатели, исключены константные признаки и столбцы с долей пропусков &gt; 70%. Далее формируется квадратная матрица корреляций, где диагональ <em>r = 1</em> не используется при визуализации. Все значения |r| ≥ выбранного порога отображаются в таблице и на графиках.</p>
-      <p>Библиотеки и окружение: расчёты выполнялись в Python с использованием <strong>pandas</strong>, <strong>numpy</strong> и <strong>openpyxl</strong>; на странице применяется <strong>Pyodide</strong> для чтения Excel и <strong>Plotly</strong> для визуализаций. Готовый файл <strong>corr_all_regions_all.xlsx</strong> содержит отдельный лист для каждого субъекта РФ с сохранённой матрицей корреляций.</p>
+      <h3>Методика расчёта корреляций и формирования базы</h3>
+      <p>
+        Корреляции рассчитаны на основе модифицированного коэффициента Пирсона с байесовской поправкой, реализованного в скрипте <code>corr_bayes_rf.py</code>.
+        Для каждой пары показателей из исходной базы берутся ряды значений по региону, удаляются пропуски, затем вычисляется стандартный коэффициент Пирсона
+        <em>r</em>. Байесовская поправка снижает смещение при малых выборках и задаётся формулой
+        <em>r<sub>bayes</sub> = r · (1 − (1 − r²)/(n − 2))</em>, где <em>n</em> — число наблюдений пары.
+      </p>
+      <p>
+        На этапе подготовки данных для каждой территории удаляются строковые столбцы, оставляются только числовые показатели, исключаются константные признаки
+        и переменные с долей пропусков более 70 %. Для каждого региона формируется квадратная матрица корреляций, которая сохраняется в отдельном листе файла
+        <strong>corr_all_regions_all.xlsx</strong> вместе с краткой метаинформацией (число наблюдений, число переменных, период наблюдения).
+      </p>
+      <p>
+        На данной странице браузер с помощью библиотеки <strong>SheetJS</strong> читает Excel-файл целиком на стороне клиента, без серверной части и без
+        интерпретатора Python. Далее матрицы для выбранного субъекта РФ парсятся, строятся ранжированные списки корреляций, тепловая карта и трёхмерное облако
+        точек с использованием <strong>Plotly</strong>.
+      </p>
     </section>
 
     <div class="footer panel">
@@ -193,245 +374,560 @@
     </div>
   </main>
 
-<script>
-  let pyodideReady = null;
-  let datasetBytes = null;
-  const pythonBootstrap = `
-import io, numpy as np, pandas as pd
-
-def _find_matrix(df):
-    matrix_start_row = None
-    meta = {}
-    for i in range(len(df)):
-        row = df.iloc[i]
-        first = row.iloc[0]
-        if pd.notna(first) and isinstance(first, str) and any(k in first.lower() for k in ['параметр', 'количество', 'наблюдений', 'переменных', 'период']):
-            if len(row) >= 2 and pd.notna(row.iloc[1]):
-                meta[str(first).strip()] = str(row.iloc[1]).strip()
-            continue
-        if (pd.isna(first) or str(first).strip() == '') and len(row) >= 2 and pd.notna(row.iloc[1]) and str(row.iloc[1]).strip() != '':
-            matrix_start_row = i
-            break
-    return matrix_start_row, meta
-
-
-def list_regions(file_bytes):
-    excel = pd.ExcelFile(io.BytesIO(file_bytes), engine='openpyxl')
-    return excel.sheet_names
-
-
-def read_region_matrix(file_bytes, region_name):
-    excel = pd.ExcelFile(io.BytesIO(file_bytes), engine='openpyxl')
-    df = pd.read_excel(excel, sheet_name=region_name, engine='openpyxl')
-    matrix_start, meta = _find_matrix(df)
-    if matrix_start is None:
-        raise ValueError('Не удалось распознать матрицу корреляций для выбранного региона.')
-
-    header_row = df.iloc[matrix_start]
-    variables = []
-    for val in header_row[1:]:
-        if pd.notna(val) and str(val).strip() != '':
-            variables.append(str(val).strip())
-
-    corr = pd.DataFrame(index=variables, columns=variables, dtype=float)
-    data_start = matrix_start + 1
-    for offset, _ in enumerate(variables):
-        row_idx = data_start + offset
-        if row_idx >= len(df):
-            break
-        row = df.iloc[row_idx]
-        row_name = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else ''
-        if not row_name or row_name not in variables:
-            continue
-        for j, col_name in enumerate(variables, start=1):
-            if j < len(row):
-                val = row.iloc[j]
-                corr.loc[row_name, col_name] = float(val) if pd.notna(val) else np.nan
-
-    corr = corr.dropna(axis=0, how='all').dropna(axis=1, how='all')
-    return corr, meta
-
-
-def analyze_region(file_bytes, region_name):
-    corr, meta = read_region_matrix(file_bytes, region_name)
-    columns = list(corr.columns)
-    matrix = corr.values.tolist()
-    pairs = []
-    for i, var1 in enumerate(columns):
-        for j, var2 in enumerate(columns):
-            if i < j:
-                val = corr.loc[var1, var2]
-                if pd.notna(val) and abs(val) < 1.0:
-                    pairs.append({'var1': var1, 'var2': var2, 'r': float(val), 'abs_r': abs(float(val))})
-    pairs = sorted(pairs, key=lambda x: x['abs_r'], reverse=True)
-    return {'columns': columns, 'matrix': matrix, 'pairs': pairs, 'meta': meta}
-`;
-
-  function setStatus(text) {
-    document.getElementById('status').textContent = text;
-  }
-
-  async function loadPyodideAndPackages() {
-    if (pyodideReady) return pyodideReady;
-    setStatus('Загрузка Pyodide...');
-    pyodideReady = loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' })
-      .then(async (py) => {
-        setStatus('Загрузка pandas, numpy, openpyxl...');
-        await py.loadPackage(['pandas', 'numpy', 'openpyxl']);
-        await py.runPythonAsync(pythonBootstrap);
-        setStatus('Готово к работе');
-        return py;
-      });
-    return pyodideReady;
-  }
-
-  async function loadDatasetBytes() {
-    if (datasetBytes) return datasetBytes;
-    setStatus('Загрузка файла corr_all_regions_all.xlsx...');
-    const resp = await fetch('corr_all_regions_all.xlsx');
-    const buffer = await resp.arrayBuffer();
-    datasetBytes = new Uint8Array(buffer);
-    setStatus('База данных загружена');
-    return datasetBytes;
-  }
-
-  function renderTable(pairs, threshold) {
-    const container = document.getElementById('top-table');
-    const filtered = pairs.filter(p => p.abs_r >= threshold);
-    if (!filtered.length) {
-      container.innerHTML = '<p>Нет значимых корреляций для выбранного порога.</p>';
-      return;
-    }
-    const rows = filtered.slice(0, 60).map(p => {
-      const badgeClass = p.abs_r >= 0.7 ? 'strong' : (p.abs_r >= 0.5 ? 'moderate' : 'weak');
-      const badgeText = p.abs_r >= 0.7 ? 'Сильная' : (p.abs_r >= 0.5 ? 'Умеренная' : 'Слабая');
-      return `<tr><td>${p.var1}</td><td>${p.var2}</td><td>${p.r.toFixed(3)}</td><td><span class="pill ${badgeClass}">${badgeText}</span></td></tr>`;
-    }).join('');
-    container.innerHTML = `<table><thead><tr><th>Показатель 1</th><th>Показатель 2</th><th>r</th><th>Сила</th></tr></thead><tbody>${rows}</tbody></table>`;
-  }
-
-  function renderSummary(result, threshold, regionName) {
-    const summary = document.getElementById('summary');
-    const filtered = result.pairs.filter(p => p.abs_r >= threshold);
-    const metaItems = Object.entries(result.meta || {}).map(([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`).join('');
-    summary.innerHTML = `
-      <li><strong>Регион:</strong> ${regionName}</li>
-      <li><strong>Число показателей:</strong> ${result.columns.length}</li>
-      <li><strong>Всего пар:</strong> ${result.pairs.length}</li>
-      <li><strong>Порог |r|:</strong> ${threshold.toFixed(2)}</li>
-      <li><strong>Отобрано корреляций:</strong> ${filtered.length}</li>
-      ${metaItems}
-    `;
-  }
-
-  function renderHeatmap(columns, matrix) {
-    if (!columns || !matrix || !matrix.length) {
-      document.getElementById('heatmap').innerHTML = 'Недостаточно данных для тепловой карты';
-      return;
-    }
-    const data = [{
-      z: matrix,
-      x: columns,
-      y: columns,
-      type: 'heatmap',
-      colorscale: 'RdBu',
-      reversescale: true,
-      zmin: -1,
-      zmax: 1,
-      colorbar: { title: 'r' }
-    }];
-    const layout = {
-      margin: { l: 80, r: 20, t: 30, b: 80 },
-      paper_bgcolor: '#ffffff',
-      plot_bgcolor: '#ffffff',
-      font: { color: '#1f2933' }
+  <script>
+    const AppState = {
+      workbook: null,
+      sheetNames: [],
+      regionCache: {}
     };
-    Plotly.newPlot('heatmap', data, layout, {responsive: true});
-  }
 
-  function renderScatter3D(columns, pairs, threshold) {
-    const filtered = pairs.filter(p => p.abs_r >= threshold);
-    if (!filtered.length) {
-      document.getElementById('scatter3d').innerHTML = 'Нет точек для выбранного порога';
-      return;
-    }
-    const nameToIndex = Object.fromEntries(columns.map((c, idx) => [c, idx]));
-    const trace = {
-      x: filtered.map(p => nameToIndex[p.var1]),
-      y: filtered.map(p => nameToIndex[p.var2]),
-      z: filtered.map(p => p.r),
-      mode: 'markers',
-      type: 'scatter3d',
-      text: filtered.map(p => `${p.var1} — ${p.var2}: r=${p.r.toFixed(3)}`),
-      marker: {
-        size: 6,
-        color: filtered.map(p => p.r),
-        colorscale: 'RdBu',
-        cmin: -1,
-        cmax: 1,
-        opacity: 0.85,
-        line: { color: '#0b1220', width: 0.5 }
+    function setStatus(text) {
+      const el = document.getElementById('status');
+      if (el) {
+        el.textContent = text;
       }
-    };
-    const layout = {
-      scene: {
-        xaxis: { title: 'Показатель 1', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#ffffff' },
-        yaxis: { title: 'Показатель 2', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#ffffff' },
-        zaxis: { title: 'r', range: [-1,1], backgroundcolor: '#ffffff' }
-      },
-      margin: { l: 0, r: 0, t: 10, b: 0 },
-      paper_bgcolor: '#ffffff',
-      font: { color: '#1f2933' }
-    };
-    Plotly.newPlot('scatter3d', [trace], layout, {responsive: true});
-  }
-
-  async function populateRegions(py, fileBytes) {
-    const pyBytes = py.toPy(fileBytes);
-    py.globals.set('file_bytes', pyBytes);
-    const regions = await py.runPythonAsync('list_regions(file_bytes)');
-    const regionList = regions.toJs({ create_proxies: false });
-    const select = document.getElementById('region');
-    select.innerHTML = regionList.map(r => `<option value="${r}">${r}</option>`).join('');
-    return select.value;
-  }
-
-  async function runAnalysis(fileBytes) {
-    const py = await loadPyodideAndPackages();
-    const regionName = document.getElementById('region').value;
-    const threshold = parseFloat(document.getElementById('threshold').value);
-
-    setStatus('Обработка региона...');
-    const pyBytes = py.toPy(fileBytes);
-    py.globals.set('file_bytes', pyBytes);
-    py.globals.set('region_name', regionName);
-    const result = await py.runPythonAsync("analyze_region(file_bytes, region_name)");
-    const data = result.toJs({ create_proxies: false });
-    setStatus('Готово!');
-
-    renderTable(data.pairs, threshold);
-    renderSummary(data, threshold, regionName);
-    renderHeatmap(data.columns, data.matrix);
-    renderScatter3D(data.columns, data.pairs, threshold);
-  }
-
-  document.getElementById('threshold').addEventListener('input', (e) => {
-    document.getElementById('threshold-value').textContent = Number(e.target.value).toFixed(2);
-  });
-
-  document.getElementById('run-btn').addEventListener('click', async () => {
-    const buffer = await loadDatasetBytes();
-    runAnalysis(buffer);
-  });
-
-  (async () => {
-    const py = await loadPyodideAndPackages();
-    const buffer = await loadDatasetBytes();
-    const firstRegion = await populateRegions(py, buffer);
-    if (firstRegion) {
-      runAnalysis(buffer);
     }
-  })();
-</script>
+
+    function setRegionCount() {
+      const el = document.getElementById('region-count');
+      if (!el) return;
+      if (!AppState.sheetNames || AppState.sheetNames.length === 0) {
+        el.textContent = '';
+        return;
+      }
+      el.textContent = 'Листов в книге: ' + AppState.sheetNames.length.toString();
+    }
+
+    function formatNumber(value, digits = 3) {
+      if (value === null || value === undefined || !isFinite(value)) return '';
+      return value.toFixed(digits);
+    }
+
+    function parseRegionSheet(sheetData) {
+      const nRows = sheetData.length;
+      let matrixStart = null;
+
+      for (let i = 0; i < nRows; i++) {
+        const row = sheetData[i] || [];
+        const c0 = row[0];
+        const c1 = row[1];
+
+        const c0Empty = c0 === null || c0 === undefined || String(c0).trim() === '';
+        const c1NonEmpty = !(c1 === null || c1 === undefined || String(c1).trim() === '');
+
+        if (c0Empty && c1NonEmpty) {
+          matrixStart = i;
+          break;
+        }
+      }
+
+      if (matrixStart === null) {
+        throw new Error('Не удалось найти начало матрицы корреляций в листе Excel.');
+      }
+
+      const headerRow = sheetData[matrixStart] || [];
+      const variables = [];
+
+      for (let c = 1; c < headerRow.length; c++) {
+        const v = headerRow[c];
+        if (!(v === null || v === undefined || String(v).trim() === '')) {
+          variables.push(String(v).trim());
+        }
+      }
+
+      const n = variables.length;
+      if (n < 2) {
+        throw new Error('В листе недостаточно переменных для построения матрицы корреляций.');
+      }
+
+      const matrix = Array.from({ length: n }, () => Array(n).fill(null));
+      const pairs = [];
+
+      for (let i = 0; i < n; i++) {
+        const rowIndex = matrixStart + 1 + i;
+        if (rowIndex >= nRows) break;
+
+        const row = sheetData[rowIndex] || [];
+        let rowName = row[0];
+
+        if (rowName === null || rowName === undefined || String(rowName).trim() === '') {
+          break;
+        }
+
+        rowName = String(rowName).trim();
+
+        for (let j = 0; j < n; j++) {
+          const cellIndex = 1 + j;
+          const val = cellIndex < row.length ? row[cellIndex] : null;
+          let num = null;
+
+          if (!(val === null || val === undefined || String(val).trim() === '')) {
+            const parsed = Number(val);
+            if (Number.isFinite(parsed)) {
+              num = parsed;
+            }
+          }
+
+          matrix[i][j] = num;
+
+          if (i < j && num !== null && Math.abs(num) < 1.0000001) {
+            pairs.push({
+              var1: variables[i],
+              var2: variables[j],
+              r: num,
+              abs_r: Math.abs(num)
+            });
+          }
+        }
+      }
+
+      pairs.sort((a, b) => b.abs_r - a.abs_r);
+
+      const meta = {};
+      for (let i = 0; i < matrixStart; i++) {
+        const row = sheetData[i] || [];
+        if (row.length >= 2) {
+          const key = row[0];
+          const value = row[1];
+          const keyOk = !(key === null || key === undefined || String(key).trim() === '');
+          const valueOk = !(value === null || value === undefined || String(value).trim() === '');
+          if (keyOk && valueOk) {
+            meta[String(key).trim()] = String(value).trim();
+          }
+        }
+      }
+
+      return {
+        variables,
+        matrix,
+        pairs,
+        meta
+      };
+    }
+
+    function renderTable(pairs, threshold) {
+      const container = document.getElementById('top-table');
+      if (!container) return;
+
+      const filtered = pairs.filter(p => p.abs_r >= threshold);
+      if (!filtered.length) {
+        container.innerHTML = '<p>Нет значимых корреляций для выбранного порога |r|.</p>';
+        return;
+      }
+
+      const maxRows = 80;
+      const slice = filtered.slice(0, maxRows);
+
+      const rowsHtml = slice
+        .map(p => {
+          let badgeClass = 'weak';
+          let badgeText = 'Слабая';
+
+          if (p.abs_r >= 0.7) {
+            badgeClass = 'strong';
+            badgeText = 'Сильная';
+          } else if (p.abs_r >= 0.5) {
+            badgeClass = 'moderate';
+            badgeText = 'Умеренная';
+          }
+
+          return (
+            '<tr>' +
+            '<td>' + p.var1 + '</td>' +
+            '<td>' + p.var2 + '</td>' +
+            '<td>' + formatNumber(p.r) + '</td>' +
+            '<td><span class="pill ' + badgeClass + '">' + badgeText + '</span></td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+
+      container.innerHTML =
+        '<table>' +
+        '<thead>' +
+        '<tr>' +
+        '<th>Показатель 1</th>' +
+        '<th>Показатель 2</th>' +
+        '<th>Коэффициент r</th>' +
+        '<th>Сила связи</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody>' +
+        rowsHtml +
+        '</tbody>' +
+        '</table>';
+    }
+
+    function renderSummary(result, threshold, regionName) {
+      const el = document.getElementById('summary');
+      if (!el) return;
+
+      const allPairs = result.pairs || [];
+      const filtered = allPairs.filter(p => p.abs_r >= threshold);
+      const positiveCount = filtered.filter(p => p.r > 0).length;
+      const negativeCount = filtered.filter(p => p.r < 0).length;
+
+      let meanAbs = null;
+      if (filtered.length > 0) {
+        const sumAbs = filtered.reduce((acc, p) => acc + p.abs_r, 0);
+        meanAbs = sumAbs / filtered.length;
+      }
+
+      const strongest = filtered.length > 0 ? filtered[0] : null;
+
+      const parts = [];
+
+      parts.push('<li><strong>Регион:</strong> ' + regionName + '</li>');
+      parts.push('<li><strong>Число показателей в матрице:</strong> ' + result.variables.length + '</li>');
+      parts.push('<li><strong>Всего пар показателей:</strong> ' + allPairs.length + '</li>');
+      parts.push('<li><strong>Порог |r|:</strong> ' + threshold.toFixed(2) + '</li>');
+      parts.push(
+        '<li><span class="summary-metric-highlight">Отобрано корреляций |r| ≥ ' +
+        threshold.toFixed(2) +
+        ':</span> ' +
+        filtered.length +
+        ' (положительных: ' +
+        positiveCount +
+        ', отрицательных: ' +
+        negativeCount +
+        ')</li>'
+      );
+
+      if (meanAbs !== null) {
+        parts.push(
+          '<li><strong>Средний модуль r среди отобранных пар:</strong> ' +
+          formatNumber(meanAbs, 3) +
+          '</li>'
+        );
+      }
+
+      if (strongest) {
+        parts.push(
+          '<li><strong>Наиболее сильная связь по модулю:</strong> ' +
+          strongest.var1 +
+          ' ↔ ' +
+          strongest.var2 +
+          ', r = ' +
+          formatNumber(strongest.r, 3) +
+          '</li>'
+        );
+      }
+
+      const meta = result.meta || {};
+      Object.keys(meta).forEach(key => {
+        const value = meta[key];
+        parts.push('<li><strong>' + key + ':</strong> ' + value + '</li>');
+      });
+
+      el.innerHTML = parts.join('');
+    }
+
+    function renderHeatmap(columns, matrix) {
+      const containerId = 'heatmap';
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (!columns || !matrix || !matrix.length) {
+        container.innerHTML = 'Недостаточно данных для построения тепловой карты.';
+        return;
+      }
+
+      const data = [
+        {
+          z: matrix,
+          x: columns,
+          y: columns,
+          type: 'heatmap',
+          colorscale: 'RdBu',
+          reversescale: true,
+          zmin: -1,
+          zmax: 1,
+          colorbar: { title: 'r' }
+        }
+      ];
+
+      const layout = {
+        margin: { l: 90, r: 20, t: 30, b: 90 },
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff',
+        font: { color: '#1f2933', size: 10 },
+        xaxis: {
+          tickangle: 90
+        }
+      };
+
+      Plotly.newPlot(containerId, data, layout, { responsive: true });
+    }
+
+    function renderScatter3D(columns, pairs, threshold) {
+      const containerId = 'scatter3d';
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const filtered = pairs.filter(p => p.abs_r >= threshold);
+      if (!filtered.length) {
+        container.innerHTML = 'Нет точек для выбранного порога |r|.';
+        return;
+      }
+
+      const nameToIndex = {};
+      columns.forEach((c, idx) => {
+        nameToIndex[c] = idx;
+      });
+
+      const x = [];
+      const y = [];
+      const z = [];
+      const text = [];
+      const color = [];
+
+      filtered.forEach(p => {
+        const i = nameToIndex[p.var1];
+        const j = nameToIndex[p.var2];
+        if (i === undefined || j === undefined) return;
+        x.push(i);
+        y.push(j);
+        z.push(p.r);
+        color.push(p.r);
+        text.push(p.var1 + ' — ' + p.var2 + ': r = ' + formatNumber(p.r));
+      });
+
+      const trace = {
+        x: x,
+        y: y,
+        z: z,
+        mode: 'markers',
+        type: 'scatter3d',
+        text: text,
+        hovertemplate:
+          '<b>%{text}</b><br>' +
+          'Индекс показателя 1: %{x}<br>' +
+          'Индекс показателя 2: %{y}<br>' +
+          'r: %{z:.3f}<extra></extra>',
+        marker: {
+          size: 6,
+          color: color,
+          colorscale: 'RdBu',
+          cmin: -1,
+          cmax: 1,
+          opacity: 0.88,
+          line: { color: '#0b1220', width: 0.5 }
+        }
+      };
+
+      const layout = {
+        scene: {
+          xaxis: {
+            title: 'Показатель 1',
+            backgroundcolor: '#ffffff',
+            showbackground: true,
+            gridcolor: '#e5e7eb'
+          },
+          yaxis: {
+            title: 'Показатель 2',
+            backgroundcolor: '#ffffff',
+            showbackground: true,
+            gridcolor: '#e5e7eb'
+          },
+          zaxis: {
+            title: 'Коэффициент r',
+            range: [-1, 1],
+            backgroundcolor: '#ffffff',
+            showbackground: true,
+            gridcolor: '#e5e7eb'
+          }
+        },
+        margin: { l: 0, r: 0, t: 10, b: 0 },
+        paper_bgcolor: '#ffffff',
+        font: { color: '#1f2933', size: 10 }
+      };
+
+      Plotly.newPlot(containerId, [trace], layout, { responsive: true });
+    }
+
+    async function loadWorkbook() {
+      setStatus('Загрузка файла corr_all_regions_all.xlsx...');
+      try {
+        const response = await fetch('corr_all_regions_all.xlsx');
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить Excel-файл (HTTP ' + response.status + ').');
+        }
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        AppState.workbook = workbook;
+        AppState.sheetNames = workbook.SheetNames || [];
+        setRegionCount();
+        setStatus('Excel-файл успешно загружен. Доступно регионов: ' + AppState.sheetNames.length + '.');
+      } catch (err) {
+        console.error(err);
+        setStatus('Ошибка при загрузке Excel-файла: ' + err.message);
+      }
+    }
+
+    function populateRegionSelect() {
+      const select = document.getElementById('region');
+      if (!select) return;
+
+      const regions = AppState.sheetNames || [];
+      if (!regions.length) {
+        select.innerHTML = '';
+        return;
+      }
+
+      const optionsHtml = regions
+        .map(name => '<option value="' + name.replace(/"/g, '&quot;') + '">' + name + '</option>')
+        .join('');
+
+      select.innerHTML = optionsHtml;
+    }
+
+    function filterRegionsBySearch() {
+      const searchInput = document.getElementById('region-search');
+      const select = document.getElementById('region');
+      const status = document.getElementById('region-search-status');
+      if (!searchInput || !select) return;
+
+      const query = searchInput.value.toLowerCase().trim();
+      const regions = AppState.sheetNames || [];
+
+      if (!query) {
+        populateRegionSelect();
+        if (status) status.textContent = '';
+        return;
+      }
+
+      const filtered = regions.filter(name => name.toLowerCase().includes(query));
+      if (!filtered.length) {
+        select.innerHTML = '';
+        if (status) status.textContent = 'Регионов по данному запросу не найдено.';
+        return;
+      }
+
+      select.innerHTML = filtered
+        .map(name => '<option value="' + name.replace(/"/g, '&quot;') + '">' + name + '</option>')
+        .join('');
+
+      if (status) {
+        status.textContent = 'Найдено регионов: ' + filtered.length + '.';
+      }
+    }
+
+    function getThresholdValue() {
+      const slider = document.getElementById('threshold');
+      if (!slider) return 0.5;
+      const value = parseFloat(slider.value);
+      return Number.isFinite(value) ? value : 0.5;
+    }
+
+    function updateThresholdLabel() {
+      const slider = document.getElementById('threshold');
+      const label = document.getElementById('threshold-value');
+      if (!slider || !label) return;
+      const value = parseFloat(slider.value);
+      label.textContent = Number.isFinite(value) ? value.toFixed(2) : '0.50';
+    }
+
+    function getSelectedRegionName() {
+      const select = document.getElementById('region');
+      if (!select || !select.value) return null;
+      return select.value;
+    }
+
+    function getRegionData(regionName) {
+      if (!regionName) {
+        throw new Error('Регион не выбран.');
+      }
+
+      if (AppState.regionCache[regionName]) {
+        return AppState.regionCache[regionName];
+      }
+
+      if (!AppState.workbook) {
+        throw new Error('Рабочая книга Excel ещё не загружена.');
+      }
+
+      const sheet = AppState.workbook.Sheets[regionName];
+      if (!sheet) {
+        throw new Error('В книге не найден лист с именем: ' + regionName);
+      }
+
+      const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+      const parsed = parseRegionSheet(sheetData);
+
+      AppState.regionCache[regionName] = parsed;
+      return parsed;
+    }
+
+    function runAnalysis() {
+      try {
+        const regionName = getSelectedRegionName();
+        const threshold = getThresholdValue();
+
+        if (!regionName) {
+          setStatus('Выберите субъект РФ для анализа.');
+          return;
+        }
+
+        setStatus('Анализ региона "' + regionName + '"...');
+
+        const data = getRegionData(regionName);
+
+        renderTable(data.pairs, threshold);
+        renderSummary(data, threshold, regionName);
+        renderHeatmap(data.variables, data.matrix);
+        renderScatter3D(data.variables, data.pairs, threshold);
+
+        setStatus('Готово. Визуализация обновлена для региона "' + regionName + '".');
+      } catch (err) {
+        console.error(err);
+        setStatus('Ошибка анализа: ' + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      updateThresholdLabel();
+
+      const thresholdSlider = document.getElementById('threshold');
+      if (thresholdSlider) {
+        thresholdSlider.addEventListener('input', () => {
+          updateThresholdLabel();
+        });
+        thresholdSlider.addEventListener('change', () => {
+          runAnalysis();
+        });
+      }
+
+      const runBtn = document.getElementById('run-btn');
+      if (runBtn) {
+        runBtn.addEventListener('click', () => {
+          runAnalysis();
+        });
+      }
+
+      const regionSelect = document.getElementById('region');
+      if (regionSelect) {
+        regionSelect.addEventListener('change', () => {
+          runAnalysis();
+        });
+      }
+
+      const regionSearch = document.getElementById('region-search');
+      if (regionSearch) {
+        regionSearch.addEventListener('input', () => {
+          filterRegionsBySearch();
+        });
+      }
+
+      await loadWorkbook();
+      populateRegionSelect();
+
+      const defaultRegion = getSelectedRegionName();
+      if (defaultRegion) {
+        runAnalysis();
+      } else {
+        setStatus('Excel-файл загружен. Выберите субъект РФ для начала анализа.');
+      }
+    });
+  </script>
 </body>
 </html>
