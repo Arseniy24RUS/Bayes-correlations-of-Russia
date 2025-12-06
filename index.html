@@ -3,25 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Байесовские корреляции региональных показателей РФ</title>
+  <title>Цифровая демографическая обсерватория: корреляционный анализ социально-экономических факторов изменения численности населения  субъектов РФ</title>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.26.0/plotly.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <style>
-    :root {
-      color-scheme: light dark;
-    }
     body {
       font-family: "Inter", "Segoe UI", system-ui, sans-serif;
       margin: 0;
       padding: 0;
       line-height: 1.5;
-      background: #0d1117;
-      color: #e6edf3;
+      background: #f6f7fb;
+      color: #1f2933;
     }
     header {
       padding: 1.5rem 1.5rem 0.5rem;
-      background: linear-gradient(135deg, #0d1117, #111827);
-      border-bottom: 1px solid #1f2937;
+      background: linear-gradient(135deg, #f7fafc, #eef2f7);
+      border-bottom: 1px solid #d9e2ec;
     }
     h1 {
       margin: 0 0 0.5rem 0;
@@ -29,7 +26,7 @@
     }
     p.lead {
       margin: 0;
-      color: #9ca3af;
+      color: #52606d;
       max-width: 900px;
     }
     main {
@@ -38,11 +35,11 @@
       margin: 0 auto;
     }
     .panel {
-      background: #0b1220;
-      border: 1px solid #1f2937;
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
       border-radius: 12px;
       padding: 1rem 1.25rem;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
       margin-bottom: 1rem;
     }
     .controls {
@@ -60,24 +57,24 @@
       width: 100%;
       padding: 0.6rem 0.75rem;
       border-radius: 10px;
-      border: 1px solid #334155;
-      background: #111827;
+      border: 1px solid #cbd2d9;
+      background: #ffffff;
       color: inherit;
       font-size: 0.95rem;
     }
     button.primary {
-      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
       border: none;
       color: #fff;
       cursor: pointer;
       font-weight: 700;
       transition: transform 0.1s ease, box-shadow 0.2s ease;
-      box-shadow: 0 10px 30px rgba(76,110,245,0.35);
+      box-shadow: 0 10px 30px rgba(59,130,246,0.25);
     }
     button.primary:hover { transform: translateY(-1px); }
     .status {
       margin-top: 0.5rem;
-      color: #c084fc;
+      color: #52606d;
       font-size: 0.95rem;
     }
     .grid-2 {
@@ -92,9 +89,9 @@
     }
     #top-table th, #top-table td {
       padding: 0.5rem;
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid #e4e7eb;
     }
-    #top-table th { text-align: left; color: #9ca3af; }
+    #top-table th { text-align: left; color: #52606d; }
     .pill {
       padding: 0.15rem 0.55rem;
       border-radius: 999px;
@@ -102,9 +99,9 @@
       color: #fff;
       display: inline-block;
     }
-    .strong { background: #f97316; }
-    .moderate { background: #22c55e; }
-    .weak { background: #0ea5e9; }
+    .strong { background: #ea580c; }
+    .moderate { background: #16a34a; }
+    .weak { background: #0284c7; }
     .plots {
       display: grid;
       grid-template-columns: 1fr;
@@ -115,34 +112,29 @@
     }
     .footer {
       margin-top: 1rem;
-      color: #9ca3af;
+      color: #52606d;
       font-size: 0.9rem;
     }
     .badge {
       display: inline-flex;
       gap: 0.25rem;
       align-items: center;
-      background: #1f2937;
+      background: #e5f0ff;
       padding: 0.25rem 0.6rem;
       border-radius: 999px;
-      border: 1px solid #334155;
+      border: 1px solid #b8d1ff;
       font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Интерактивный дашборд: байесовские корреляции регионов РФ</h1>
-    <p class="lead">Статическая страница для GitHub Pages: загрузите исходный Excel или используйте встроенный пример, чтобы рассчитать корреляции, отфильтровать их по порогу и изучить тепловую карту и 3D облако.</p>
+    <h1>Цифровая демографическая обсерватория: корреляционный анализ социально-экономических факторов изменения численности населения  субъектов РФ</h1>
+    <p class="lead">Готовый дашборд загружает встроенную базу данных и автоматически строит корреляции между социально-экономическими показателями регионов. Фильтруйте по региону, году и порогу |r|, чтобы исследовать связи.</p>
   </header>
   <main>
     <section class="panel">
       <div class="controls">
-        <div>
-          <label for="file">Excel-файл с данными</label>
-          <input type="file" id="file" accept=".xlsx,.xls" />
-          <div class="status" id="file-status">Можно использовать встроенный пример: <button id="load-demo" class="badge" type="button">Загрузить пример</button></div>
-        </div>
         <div>
           <label for="region">Регион (regex, пусто = все)</label>
           <input id="region" placeholder="Например: ^Новосибир" />
@@ -158,7 +150,7 @@
         </div>
         <div>
           <button class="primary" id="run-btn" type="button">Посчитать корреляции</button>
-          <div class="status" id="status">Pyodide ещё не загружен</div>
+          <div class="status" id="status">Загрузка окружения...</div>
         </div>
       </div>
     </section>
@@ -189,16 +181,17 @@
       <strong>Как это работает?</strong>
       <ol>
         <li>Pyodide (Python в браузере) подгружает pandas, numpy и openpyxl.</li>
-        <li>Файл Excel читается прямо в памяти, фильтруется по региону и году как в <code>corr.py</code>.</li>
+        <li>Встроенный Excel-файл считывается прямо в памяти и фильтруется по региону и году как в <code>corr.py</code>.</li>
         <li>Вычисляется корреляционная матрица, формируется топ взаимосвязей и 3D точки.</li>
         <li>Все расчёты выполняются локально в браузере, так что дашборд безопасен для GitHub Pages.</li>
       </ol>
-      <p>Если нужно использовать свои данные, просто загрузите Excel с теми же полями (<strong>Регион</strong>, <strong>Год</strong> и числовые показатели).</p>
+      <p>База уже встроена в репозиторий (файл <strong>Итоговая_база_данных_типизация_и_исправления_финальные.xlsx</strong>), поэтому дашборд готов к работе сразу после открытия.</p>
     </div>
   </main>
 
 <script>
   let pyodideReady = null;
+  let datasetBytes = null;
   const pythonBootstrap = `import io, re, json, warnings\nimport pandas as pd\nimport numpy as np\nwarnings.simplefilter('ignore')\n\n` + `\n` + `def _clean_dataframe(df, region_pattern='.*', year_filter='all'):\n    if "Тип" in df.columns:\n        df = df.loc[~df["Тип"].eq("Страна")]\n        df = df.drop(columns=["Тип"])\n\n    if region_pattern != ".*":\n        mask = df["Регион"].str.contains(region_pattern, flags=re.I, regex=True, na=False)\n        df = df[mask]\n\n    if year_filter != "all":\n        df = df[df["Год"] == int(year_filter)]\n\n    df = df.drop_duplicates(subset=["Регион", "Год"], keep='first').reset_index(drop=True)\n    if len(df) < 2:\n        raise ValueError(f"Недостаточно данных: найдено {len(df)} строк. Попробуйте изменить фильтры.")\n\n    thresh = int(len(df) * 0.30)\n    df = df.dropna(axis=1, thresh=thresh)\n\n    num_cols = [c for c in df.select_dtypes(include=[np.number]).columns if c not in ["Регион", "Год"]]\n    num_cols = [c for c in num_cols if df[c].nunique() > 1]\n\n    if len(num_cols) < 2:\n        raise ValueError("Недостаточно числовых столбцов для расчёта корреляций.")\n    return df, num_cols\n\n` + `\n` + `def compute_correlations(file_bytes, region_pattern='.*', year_filter='all'):\n    df = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl')\n    df, num_cols = _clean_dataframe(df, region_pattern, year_filter)\n    corr = df[num_cols].corr(method='pearson')\n\n    matrix = corr.loc[num_cols, num_cols].values.tolist()\n    pairs = []\n    for i, var1 in enumerate(num_cols):\n        for j, var2 in enumerate(num_cols):\n            if i < j:\n                val = corr.loc[var1, var2]\n                if pd.notna(val):\n                    pairs.append({\n                        'var1': var1,\n                        'var2': var2,\n                        'r': float(val),\n                        'abs_r': abs(float(val))\n                    })\n\n    pairs = sorted([p for p in pairs if p['abs_r'] < 1.0], key=lambda x: x['abs_r'], reverse=True)\n    return {\n        'columns': num_cols,\n        'matrix': matrix,\n        'pairs': pairs,\n        'count_rows': int(len(df)),\n        'count_cols': int(len(num_cols))\n    }\n`;
 
   function setStatus(text) {
@@ -217,6 +210,16 @@
         return py;
       });
     return pyodideReady;
+  }
+
+  async function loadDatasetBytes() {
+    if (datasetBytes) return datasetBytes;
+    setStatus('Загрузка встроенной базы данных...');
+    const resp = await fetch('Итоговая_база_данных_типизация_и_исправления_финальные.xlsx');
+    const buffer = await resp.arrayBuffer();
+    datasetBytes = new Uint8Array(buffer);
+    setStatus('База данных загружена');
+    return datasetBytes;
   }
 
   function renderTable(pairs, threshold) {
@@ -264,9 +267,9 @@
     }];
     const layout = {
       margin: { l: 80, r: 20, t: 40, b: 80 },
-      paper_bgcolor: '#0b1220',
-      plot_bgcolor: '#0b1220',
-      font: { color: '#e6edf3' }
+      paper_bgcolor: '#ffffff',
+      plot_bgcolor: '#ffffff',
+      font: { color: '#1f2933' }
     };
     Plotly.newPlot('heatmap', data, layout, {responsive: true});
   }
@@ -297,13 +300,13 @@
     };
     const layout = {
       scene: {
-        xaxis: { title: 'Показатель 1', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#0b1220' },
-        yaxis: { title: 'Показатель 2', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#0b1220' },
-        zaxis: { title: 'r', range: [-1,1], backgroundcolor: '#0b1220' }
+        xaxis: { title: 'Показатель 1', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#ffffff' },
+        yaxis: { title: 'Показатель 2', tickvals: Object.values(nameToIndex), ticktext: columns, backgroundcolor: '#ffffff' },
+        zaxis: { title: 'r', range: [-1,1], backgroundcolor: '#ffffff' }
       },
       margin: { l: 0, r: 0, t: 10, b: 0 },
-      paper_bgcolor: '#0b1220',
-      font: { color: '#e6edf3' }
+      paper_bgcolor: '#ffffff',
+      font: { color: '#1f2933' }
     };
     Plotly.newPlot('scatter3d', [trace], layout, {responsive: true});
   }
@@ -334,25 +337,16 @@
   });
 
   document.getElementById('run-btn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('file');
-    if (!fileInput.files.length && !window.demoBytes) {
-      alert('Загрузите Excel-файл или воспользуйтесь демо-файлом.');
-      return;
-    }
-    const buffer = window.demoBytes || await fileInput.files[0].arrayBuffer();
-    runAnalysis(new Uint8Array(buffer));
+    const buffer = await loadDatasetBytes();
+    runAnalysis(buffer);
   });
 
-  document.getElementById('load-demo').addEventListener('click', async () => {
-    setStatus('Скачиваем демо-файл...');
-    const resp = await fetch('Итоговая_база_данных_типизация_и_исправления_финальные.xlsx');
-    const buffer = await resp.arrayBuffer();
-    window.demoBytes = new Uint8Array(buffer);
-    setStatus('Демо-файл загружен, жмите «Посчитать корреляции».');
-  });
-
-  // Прогреваем Pyodide на фоне, чтобы пользователь меньше ждал при первом запуске.
-  loadPyodideAndPackages();
+  // Подготовка окружения и автоматический первый запуск.
+  (async () => {
+    await loadPyodideAndPackages();
+    const buffer = await loadDatasetBytes();
+    runAnalysis(buffer);
+  })();
 </script>
 </body>
 </html>
