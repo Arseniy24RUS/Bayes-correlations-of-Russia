@@ -24,6 +24,16 @@ The dashboard is associated with the research agenda of a digital demographic ob
 
 GitHub Pages: <https://arseniy24rus.github.io/Bayes-correlations-of-Russia/>
 
+### Visual overview
+
+![English dashboard hero screenshot](assets/visuals/hero-en.png)
+
+![English user scenario GIF](assets/visuals/scenario-en.gif)
+
+![English data architecture diagram](assets/visuals/architecture-en.svg)
+
+![English methodology diagram](assets/visuals/methodology-en.svg)
+
 ### Repository structure
 
 ```text
@@ -106,6 +116,16 @@ Unless otherwise stated, source code is released under the MIT License. Data, do
 ### Публичный дашборд
 
 GitHub Pages: <https://arseniy24rus.github.io/Bayes-correlations-of-Russia/>
+
+### Визуальный обзор
+
+![Скриншот дашборда на русском языке](assets/visuals/hero-ru.png)
+
+![GIF пользовательского сценария на русском языке](assets/visuals/scenario-ru.gif)
+
+![Схема архитектуры данных на русском языке](assets/visuals/architecture-ru.svg)
+
+![Методологическая схема на русском языке](assets/visuals/methodology-ru.svg)
 
 ### Структура репозитория
 
