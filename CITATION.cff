@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below."
+type: software
+title: "Bayesian Correlations of Russian Regions: digital demographic observatory"
+authors:
+  - family-names: "Sitkovskiy"
+    given-names: "Arseniy"
+year: 2026
+license: MIT
+repository-code: "https://github.com/Arseniy24RUS/Bayes-correlations-of-Russia"
+url: "https://arseniy24rus.github.io/Bayes-correlations-of-Russia/"
