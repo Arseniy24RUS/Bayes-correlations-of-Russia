@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "test:i18n": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "http-server": "^14.1.1"
+  }
+}
