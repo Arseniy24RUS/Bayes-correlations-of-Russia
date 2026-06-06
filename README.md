@@ -1,10 +1,10 @@
-# Bayesian Correlations of Russian Regions · Digital Demographic Observatory
+﻿# Bayesian Correlations of Russian Regions · Digital Demographic Observatory
 
 [English](#english) · [Русский](#русский)
 
 [![Live demo](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://arseniy24rus.github.io/Bayes-correlations-of-Russia/)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
-[![Data/docs: CC BY 4.0](https://img.shields.io/badge/data%20%26%20docs-CC%20BY%204.0-lightgrey.svg)](LICENSE-DOCS-AND-DATA.md)
+[![Data/docs: CC BY 4.0](https://img.shields.io/badge/data%20%26%20docs-CC%20BY%204.0-lightgrey.svg)](docs/license-docs-and-data.md)
 
 ---
 
@@ -102,7 +102,7 @@ If you use the dashboard, scripts, workbook structure or methodological descript
 | Material | License / terms |
 | --- | --- |
 | Source code | [MIT License](LICENSE) |
-| Documentation, data, dashboard text and original content | [Creative Commons Attribution 4.0 International](LICENSE-DOCS-AND-DATA.md) |
+| Documentation, data, dashboard text and original content | [Creative Commons Attribution 4.0 International](docs/license-docs-and-data.md) |
 | Third-party datasets, official statistics, logos, institutional names and external services | Original provider or rights-holder terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) |
 
 ---
@@ -201,5 +201,5 @@ python -m http.server 8000
 | Материал | Лицензия / условия |
 | --- | --- |
 | Исходный код | [MIT License](LICENSE) |
-| Документация, данные, тексты дашборда и оригинальный контент | [Creative Commons Attribution 4.0 International](LICENSE-DOCS-AND-DATA.md) |
+| Документация, данные, тексты дашборда и оригинальный контент | [Creative Commons Attribution 4.0 International](docs/license-docs-and-data.md) |
 | Сторонние наборы данных, официальная статистика, логотипы, институциональные названия и внешние сервисы | Условия первоначальных поставщиков или правообладателей; см. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) |
