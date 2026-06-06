@@ -4,7 +4,7 @@
 
 [![Live demo](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://arseniy24rus.github.io/Bayes-correlations-of-Russia/)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
-[![Data/docs: CC BY 4.0](https://img.shields.io/badge/data%20%26%20docs-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Data/docs: CC BY 4.0](https://img.shields.io/badge/data%20%26%20docs-CC%20BY%204.0-lightgrey.svg)](LICENSE-DOCS-AND-DATA.md)
 
 ---
 
@@ -57,6 +57,8 @@ r_bayes = r * (1 - (1 - r²) / (n - 2))
 
 where `r` is the Pearson correlation coefficient and `n` is the number of valid observations for a pair of indicators. This adjustment does not transform correlations into causal estimates; it only makes small-sample coefficients more conservative.
 
+Detailed methodology: [docs/methodology.md](docs/methodology.md).
+
 ### Dashboard features
 
 The interactive dashboard includes a heatmap of correlations, a 3D visualization of significant relationships, ranked lists of strongest positive and negative associations, and explanatory text for interpreting the results. It is intended to make regional correlation structures easier to inspect visually.
@@ -97,7 +99,11 @@ If you use the dashboard, scripts, workbook structure or methodological descript
 
 ### License
 
-Unless otherwise stated, source code is released under the MIT License. Data, documentation and dashboard text are released under Creative Commons Attribution 4.0 International (CC BY 4.0). External source data may be governed by the terms of their original providers.
+| Material | License / terms |
+| --- | --- |
+| Source code | [MIT License](LICENSE) |
+| Documentation, data, dashboard text and original content | [Creative Commons Attribution 4.0 International](LICENSE-DOCS-AND-DATA.md) |
+| Third-party datasets, official statistics, logos, institutional names and external services | Original provider or rights-holder terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) |
 
 ---
 
@@ -150,6 +156,8 @@ r_bayes = r * (1 - (1 - r²) / (n - 2))
 
 где `r` — коэффициент корреляции Пирсона, а `n` — число валидных наблюдений для пары показателей. Эта корректировка не превращает корреляции в причинные оценки; она лишь делает коэффициенты при малом числе наблюдений более консервативными.
 
+Подробная методология: [docs/methodology.md](docs/methodology.md).
+
 ### Возможности дашборда
 
 Интерактивный дашборд включает тепловую карту корреляций, 3D-визуализацию значимых связей, ранжированные списки наиболее сильных положительных и отрицательных ассоциаций и пояснительный текст для интерпретации результатов. Его задача — сделать региональные корреляционные структуры более доступными для визуального анализа.
@@ -190,4 +198,8 @@ python -m http.server 8000
 
 ### Лицензия
 
-Если явно не указано иное, исходный код распространяется по лицензии MIT. Данные, документация и тексты дашборда распространяются по лицензии Creative Commons Attribution 4.0 International (CC BY 4.0). Внешние исходные данные могут регулироваться условиями их первоначальных поставщиков.
+| Материал | Лицензия / условия |
+| --- | --- |
+| Исходный код | [MIT License](LICENSE) |
+| Документация, данные, тексты дашборда и оригинальный контент | [Creative Commons Attribution 4.0 International](LICENSE-DOCS-AND-DATA.md) |
+| Сторонние наборы данных, официальная статистика, логотипы, институциональные названия и внешние сервисы | Условия первоначальных поставщиков или правообладателей; см. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) |
